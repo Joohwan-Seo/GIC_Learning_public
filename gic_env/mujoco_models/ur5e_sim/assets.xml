@@ -1,0 +1,20 @@
+<mujocoinclude>
+    <asset>
+        <mesh name="base" file="../ur5e_sim/meshes/base.stl" />
+        <mesh name="shoulder" file="../ur5e_sim/meshes/shoulder.stl" />
+        <mesh name="upperarm" file="../ur5e_sim/meshes/upperarm.stl" />
+        <mesh name="forearm" file="../ur5e_sim/meshes/forearm.stl" />
+        <mesh name="wrist1" file="../ur5e_sim/meshes/wrist1.stl" />
+        <mesh name="wrist2" file="../ur5e_sim/meshes/wrist2.stl" />
+        <mesh name="wrist3" file="../ur5e_sim/meshes/wrist3.stl" />
+        <mesh name="base_vis" file="../ur5e_sim/meshes/base_vis.stl" />
+        <mesh name="shoulder_vis" file="../ur5e_sim/meshes/shoulder_vis.stl" />
+        <mesh name="upperarm_vis" file="../ur5e_sim/meshes/upperarm_vis.stl" />
+        <mesh name="forearm_vis" file="../ur5e_sim/meshes/forearm_vis.stl" />
+        <mesh name="wrist1_vis" file="../ur5e_sim/meshes/wrist1_vis.stl" />
+        <mesh name="wrist2_vis" file="../ur5e_sim/meshes/wrist2_vis.stl" />
+        <mesh name="wrist3_vis" file="../ur5e_sim/meshes/wrist3_vis.stl" />
+    </asset>
+
+    <!-- We may need to include armature data etc in here -->
+</mujocoinclude>

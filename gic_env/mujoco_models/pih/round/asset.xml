@@ -1,0 +1,211 @@
+<default class="hole">
+  <geom type="box" mass="0.0099" size="0.02500 0.00047 0.01000"/>
+</default>
+
+<asset>
+  <mesh name="prism" vertex="0.0150 0.00047 0.0200  0.0150 0.00047 0.0400  0.06500 0.00047 0.02000  0.06500 0.00047 0.04000  0.06490 0.00361 0.02000  0.06490 0.00361 0.04000"/>
+</asset>
+
+<body name="hole" pos="0 0 0">
+  <geom name="base" type="box" mass="0.00990" pos="0 0 0.01" size="0.01747 0.01747 0.01"/>
+  <geom name="hole1" class="hole" pos="0.04000 0.00000 0.03000" euler="0 0 0.000"/>
+  <geom name="prism1" type="mesh" mesh="prism"/>
+  <geom name="hole2" class="hole" pos="0.03992 0.00251 0.03000" euler="0 0 0.063"/>
+  <geom name="prism2" type="mesh" mesh="prism" euler="0 0 0.06283"/>
+  <geom name="hole3" class="hole" pos="0.03968 0.00501 0.03000" euler="0 0 0.126"/>
+  <geom name="prism3" type="mesh" mesh="prism" euler="0 0 0.12566"/>
+  <geom name="hole4" class="hole" pos="0.03929 0.00750 0.03000" euler="0 0 0.188"/>
+  <geom name="prism4" type="mesh" mesh="prism" euler="0 0 0.18850"/>
+  <geom name="hole5" class="hole" pos="0.03874 0.00995 0.03000" euler="0 0 0.251"/>
+  <geom name="prism5" type="mesh" mesh="prism" euler="0 0 0.25133"/>
+  <geom name="hole6" class="hole" pos="0.03804 0.01236 0.03000" euler="0 0 0.314"/>
+  <geom name="prism6" type="mesh" mesh="prism" euler="0 0 0.31416"/>
+  <geom name="hole7" class="hole" pos="0.03719 0.01472 0.03000" euler="0 0 0.377"/>
+  <geom name="prism7" type="mesh" mesh="prism" euler="0 0 0.37699"/>
+  <geom name="hole8" class="hole" pos="0.03619 0.01703 0.03000" euler="0 0 0.440"/>
+  <geom name="prism8" type="mesh" mesh="prism" euler="0 0 0.43982"/>
+  <geom name="hole9" class="hole" pos="0.03505 0.01927 0.03000" euler="0 0 0.503"/>
+  <geom name="prism9" type="mesh" mesh="prism" euler="0 0 0.50265"/>
+  <geom name="hole10" class="hole" pos="0.03377 0.02143 0.03000" euler="0 0 0.565"/>
+  <geom name="prism10" type="mesh" mesh="prism" euler="0 0 0.56549"/>
+  <geom name="hole11" class="hole" pos="0.03236 0.02351 0.03000" euler="0 0 0.628"/>
+  <geom name="prism11" type="mesh" mesh="prism" euler="0 0 0.62832"/>
+  <geom name="hole12" class="hole" pos="0.03082 0.02550 0.03000" euler="0 0 0.691"/>
+  <geom name="prism12" type="mesh" mesh="prism" euler="0 0 0.69115"/>
+  <geom name="hole13" class="hole" pos="0.02916 0.02738 0.03000" euler="0 0 0.754"/>
+  <geom name="prism13" type="mesh" mesh="prism" euler="0 0 0.75398"/>
+  <geom name="hole14" class="hole" pos="0.02738 0.02916 0.03000" euler="0 0 0.817"/>
+  <geom name="prism14" type="mesh" mesh="prism" euler="0 0 0.81681"/>
+  <geom name="hole15" class="hole" pos="0.02550 0.03082 0.03000" euler="0 0 0.880"/>
+  <geom name="prism15" type="mesh" mesh="prism" euler="0 0 0.87965"/>
+  <geom name="hole16" class="hole" pos="0.02351 0.03236 0.03000" euler="0 0 0.942"/>
+  <geom name="prism16" type="mesh" mesh="prism" euler="0 0 0.94248"/>
+  <geom name="hole17" class="hole" pos="0.02143 0.03377 0.03000" euler="0 0 1.005"/>
+  <geom name="prism17" type="mesh" mesh="prism" euler="0 0 1.00531"/>
+  <geom name="hole18" class="hole" pos="0.01927 0.03505 0.03000" euler="0 0 1.068"/>
+  <geom name="prism18" type="mesh" mesh="prism" euler="0 0 1.06814"/>
+  <geom name="hole19" class="hole" pos="0.01703 0.03619 0.03000" euler="0 0 1.131"/>
+  <geom name="prism19" type="mesh" mesh="prism" euler="0 0 1.13097"/>
+  <geom name="hole20" class="hole" pos="0.01472 0.03719 0.03000" euler="0 0 1.194"/>
+  <geom name="prism20" type="mesh" mesh="prism" euler="0 0 1.19381"/>
+  <geom name="hole21" class="hole" pos="0.01236 0.03804 0.03000" euler="0 0 1.257"/>
+  <geom name="prism21" type="mesh" mesh="prism" euler="0 0 1.25664"/>
+  <geom name="hole22" class="hole" pos="0.00995 0.03874 0.03000" euler="0 0 1.319"/>
+  <geom name="prism22" type="mesh" mesh="prism" euler="0 0 1.31947"/>
+  <geom name="hole23" class="hole" pos="0.00750 0.03929 0.03000" euler="0 0 1.382"/>
+  <geom name="prism23" type="mesh" mesh="prism" euler="0 0 1.38230"/>
+  <geom name="hole24" class="hole" pos="0.00501 0.03968 0.03000" euler="0 0 1.445"/>
+  <geom name="prism24" type="mesh" mesh="prism" euler="0 0 1.44513"/>
+  <geom name="hole25" class="hole" pos="0.00251 0.03992 0.03000" euler="0 0 1.508"/>
+  <geom name="prism25" type="mesh" mesh="prism" euler="0 0 1.50796"/>
+  <geom name="hole26" class="hole" pos="-0.00000 0.04000 0.03000" euler="0 0 1.571"/>
+  <geom name="prism26" type="mesh" mesh="prism" euler="0 0 1.57080"/>
+  <geom name="hole27" class="hole" pos="-0.00251 0.03992 0.03000" euler="0 0 1.634"/>
+  <geom name="prism27" type="mesh" mesh="prism" euler="0 0 1.63363"/>
+  <geom name="hole28" class="hole" pos="-0.00501 0.03968 0.03000" euler="0 0 1.696"/>
+  <geom name="prism28" type="mesh" mesh="prism" euler="0 0 1.69646"/>
+  <geom name="hole29" class="hole" pos="-0.00750 0.03929 0.03000" euler="0 0 1.759"/>
+  <geom name="prism29" type="mesh" mesh="prism" euler="0 0 1.75929"/>
+  <geom name="hole30" class="hole" pos="-0.00995 0.03874 0.03000" euler="0 0 1.822"/>
+  <geom name="prism30" type="mesh" mesh="prism" euler="0 0 1.82212"/>
+  <geom name="hole31" class="hole" pos="-0.01236 0.03804 0.03000" euler="0 0 1.885"/>
+  <geom name="prism31" type="mesh" mesh="prism" euler="0 0 1.88496"/>
+  <geom name="hole32" class="hole" pos="-0.01472 0.03719 0.03000" euler="0 0 1.948"/>
+  <geom name="prism32" type="mesh" mesh="prism" euler="0 0 1.94779"/>
+  <geom name="hole33" class="hole" pos="-0.01703 0.03619 0.03000" euler="0 0 2.011"/>
+  <geom name="prism33" type="mesh" mesh="prism" euler="0 0 2.01062"/>
+  <geom name="hole34" class="hole" pos="-0.01927 0.03505 0.03000" euler="0 0 2.073"/>
+  <geom name="prism34" type="mesh" mesh="prism" euler="0 0 2.07345"/>
+  <geom name="hole35" class="hole" pos="-0.02143 0.03377 0.03000" euler="0 0 2.136"/>
+  <geom name="prism35" type="mesh" mesh="prism" euler="0 0 2.13628"/>
+  <geom name="hole36" class="hole" pos="-0.02351 0.03236 0.03000" euler="0 0 2.199"/>
+  <geom name="prism36" type="mesh" mesh="prism" euler="0 0 2.19911"/>
+  <geom name="hole37" class="hole" pos="-0.02550 0.03082 0.03000" euler="0 0 2.262"/>
+  <geom name="prism37" type="mesh" mesh="prism" euler="0 0 2.26195"/>
+  <geom name="hole38" class="hole" pos="-0.02738 0.02916 0.03000" euler="0 0 2.325"/>
+  <geom name="prism38" type="mesh" mesh="prism" euler="0 0 2.32478"/>
+  <geom name="hole39" class="hole" pos="-0.02916 0.02738 0.03000" euler="0 0 2.388"/>
+  <geom name="prism39" type="mesh" mesh="prism" euler="0 0 2.38761"/>
+  <geom name="hole40" class="hole" pos="-0.03082 0.02550 0.03000" euler="0 0 2.450"/>
+  <geom name="prism40" type="mesh" mesh="prism" euler="0 0 2.45044"/>
+  <geom name="hole41" class="hole" pos="-0.03236 0.02351 0.03000" euler="0 0 2.513"/>
+  <geom name="prism41" type="mesh" mesh="prism" euler="0 0 2.51327"/>
+  <geom name="hole42" class="hole" pos="-0.03377 0.02143 0.03000" euler="0 0 2.576"/>
+  <geom name="prism42" type="mesh" mesh="prism" euler="0 0 2.57611"/>
+  <geom name="hole43" class="hole" pos="-0.03505 0.01927 0.03000" euler="0 0 2.639"/>
+  <geom name="prism43" type="mesh" mesh="prism" euler="0 0 2.63894"/>
+  <geom name="hole44" class="hole" pos="-0.03619 0.01703 0.03000" euler="0 0 2.702"/>
+  <geom name="prism44" type="mesh" mesh="prism" euler="0 0 2.70177"/>
+  <geom name="hole45" class="hole" pos="-0.03719 0.01472 0.03000" euler="0 0 2.765"/>
+  <geom name="prism45" type="mesh" mesh="prism" euler="0 0 2.76460"/>
+  <geom name="hole46" class="hole" pos="-0.03804 0.01236 0.03000" euler="0 0 2.827"/>
+  <geom name="prism46" type="mesh" mesh="prism" euler="0 0 2.82743"/>
+  <geom name="hole47" class="hole" pos="-0.03874 0.00995 0.03000" euler="0 0 2.890"/>
+  <geom name="prism47" type="mesh" mesh="prism" euler="0 0 2.89027"/>
+  <geom name="hole48" class="hole" pos="-0.03929 0.00750 0.03000" euler="0 0 2.953"/>
+  <geom name="prism48" type="mesh" mesh="prism" euler="0 0 2.95310"/>
+  <geom name="hole49" class="hole" pos="-0.03968 0.00501 0.03000" euler="0 0 3.016"/>
+  <geom name="prism49" type="mesh" mesh="prism" euler="0 0 3.01593"/>
+  <geom name="hole50" class="hole" pos="-0.03992 0.00251 0.03000" euler="0 0 3.079"/>
+  <geom name="prism50" type="mesh" mesh="prism" euler="0 0 3.07876"/>
+  <geom name="hole51" class="hole" pos="-0.04000 -0.00000 0.03000" euler="0 0 3.142"/>
+  <geom name="prism51" type="mesh" mesh="prism" euler="0 0 3.14159"/>
+  <geom name="hole52" class="hole" pos="-0.03992 -0.00251 0.03000" euler="0 0 3.204"/>
+  <geom name="prism52" type="mesh" mesh="prism" euler="0 0 3.20442"/>
+  <geom name="hole53" class="hole" pos="-0.03968 -0.00501 0.03000" euler="0 0 3.267"/>
+  <geom name="prism53" type="mesh" mesh="prism" euler="0 0 3.26726"/>
+  <geom name="hole54" class="hole" pos="-0.03929 -0.00750 0.03000" euler="0 0 3.330"/>
+  <geom name="prism54" type="mesh" mesh="prism" euler="0 0 3.33009"/>
+  <geom name="hole55" class="hole" pos="-0.03874 -0.00995 0.03000" euler="0 0 3.393"/>
+  <geom name="prism55" type="mesh" mesh="prism" euler="0 0 3.39292"/>
+  <geom name="hole56" class="hole" pos="-0.03804 -0.01236 0.03000" euler="0 0 3.456"/>
+  <geom name="prism56" type="mesh" mesh="prism" euler="0 0 3.45575"/>
+  <geom name="hole57" class="hole" pos="-0.03719 -0.01472 0.03000" euler="0 0 3.519"/>
+  <geom name="prism57" type="mesh" mesh="prism" euler="0 0 3.51858"/>
+  <geom name="hole58" class="hole" pos="-0.03619 -0.01703 0.03000" euler="0 0 3.581"/>
+  <geom name="prism58" type="mesh" mesh="prism" euler="0 0 3.58142"/>
+  <geom name="hole59" class="hole" pos="-0.03505 -0.01927 0.03000" euler="0 0 3.644"/>
+  <geom name="prism59" type="mesh" mesh="prism" euler="0 0 3.64425"/>
+  <geom name="hole60" class="hole" pos="-0.03377 -0.02143 0.03000" euler="0 0 3.707"/>
+  <geom name="prism60" type="mesh" mesh="prism" euler="0 0 3.70708"/>
+  <geom name="hole61" class="hole" pos="-0.03236 -0.02351 0.03000" euler="0 0 3.770"/>
+  <geom name="prism61" type="mesh" mesh="prism" euler="0 0 3.76991"/>
+  <geom name="hole62" class="hole" pos="-0.03082 -0.02550 0.03000" euler="0 0 3.833"/>
+  <geom name="prism62" type="mesh" mesh="prism" euler="0 0 3.83274"/>
+  <geom name="hole63" class="hole" pos="-0.02916 -0.02738 0.03000" euler="0 0 3.896"/>
+  <geom name="prism63" type="mesh" mesh="prism" euler="0 0 3.89557"/>
+  <geom name="hole64" class="hole" pos="-0.02738 -0.02916 0.03000" euler="0 0 3.958"/>
+  <geom name="prism64" type="mesh" mesh="prism" euler="0 0 3.95841"/>
+  <geom name="hole65" class="hole" pos="-0.02550 -0.03082 0.03000" euler="0 0 4.021"/>
+  <geom name="prism65" type="mesh" mesh="prism" euler="0 0 4.02124"/>
+  <geom name="hole66" class="hole" pos="-0.02351 -0.03236 0.03000" euler="0 0 4.084"/>
+  <geom name="prism66" type="mesh" mesh="prism" euler="0 0 4.08407"/>
+  <geom name="hole67" class="hole" pos="-0.02143 -0.03377 0.03000" euler="0 0 4.147"/>
+  <geom name="prism67" type="mesh" mesh="prism" euler="0 0 4.14690"/>
+  <geom name="hole68" class="hole" pos="-0.01927 -0.03505 0.03000" euler="0 0 4.210"/>
+  <geom name="prism68" type="mesh" mesh="prism" euler="0 0 4.20973"/>
+  <geom name="hole69" class="hole" pos="-0.01703 -0.03619 0.03000" euler="0 0 4.273"/>
+  <geom name="prism69" type="mesh" mesh="prism" euler="0 0 4.27257"/>
+  <geom name="hole70" class="hole" pos="-0.01472 -0.03719 0.03000" euler="0 0 4.335"/>
+  <geom name="prism70" type="mesh" mesh="prism" euler="0 0 4.33540"/>
+  <geom name="hole71" class="hole" pos="-0.01236 -0.03804 0.03000" euler="0 0 4.398"/>
+  <geom name="prism71" type="mesh" mesh="prism" euler="0 0 4.39823"/>
+  <geom name="hole72" class="hole" pos="-0.00995 -0.03874 0.03000" euler="0 0 4.461"/>
+  <geom name="prism72" type="mesh" mesh="prism" euler="0 0 4.46106"/>
+  <geom name="hole73" class="hole" pos="-0.00750 -0.03929 0.03000" euler="0 0 4.524"/>
+  <geom name="prism73" type="mesh" mesh="prism" euler="0 0 4.52389"/>
+  <geom name="hole74" class="hole" pos="-0.00501 -0.03968 0.03000" euler="0 0 4.587"/>
+  <geom name="prism74" type="mesh" mesh="prism" euler="0 0 4.58673"/>
+  <geom name="hole75" class="hole" pos="-0.00251 -0.03992 0.03000" euler="0 0 4.650"/>
+  <geom name="prism75" type="mesh" mesh="prism" euler="0 0 4.64956"/>
+  <geom name="hole76" class="hole" pos="-0.00000 -0.04000 0.03000" euler="0 0 4.712"/>
+  <geom name="prism76" type="mesh" mesh="prism" euler="0 0 4.71239"/>
+  <geom name="hole77" class="hole" pos="0.00251 -0.03992 0.03000" euler="0 0 4.775"/>
+  <geom name="prism77" type="mesh" mesh="prism" euler="0 0 4.77522"/>
+  <geom name="hole78" class="hole" pos="0.00501 -0.03968 0.03000" euler="0 0 4.838"/>
+  <geom name="prism78" type="mesh" mesh="prism" euler="0 0 4.83805"/>
+  <geom name="hole79" class="hole" pos="0.00750 -0.03929 0.03000" euler="0 0 4.901"/>
+  <geom name="prism79" type="mesh" mesh="prism" euler="0 0 4.90088"/>
+  <geom name="hole80" class="hole" pos="0.00995 -0.03874 0.03000" euler="0 0 4.964"/>
+  <geom name="prism80" type="mesh" mesh="prism" euler="0 0 4.96372"/>
+  <geom name="hole81" class="hole" pos="0.01236 -0.03804 0.03000" euler="0 0 5.027"/>
+  <geom name="prism81" type="mesh" mesh="prism" euler="0 0 5.02655"/>
+  <geom name="hole82" class="hole" pos="0.01472 -0.03719 0.03000" euler="0 0 5.089"/>
+  <geom name="prism82" type="mesh" mesh="prism" euler="0 0 5.08938"/>
+  <geom name="hole83" class="hole" pos="0.01703 -0.03619 0.03000" euler="0 0 5.152"/>
+  <geom name="prism83" type="mesh" mesh="prism" euler="0 0 5.15221"/>
+  <geom name="hole84" class="hole" pos="0.01927 -0.03505 0.03000" euler="0 0 5.215"/>
+  <geom name="prism84" type="mesh" mesh="prism" euler="0 0 5.21504"/>
+  <geom name="hole85" class="hole" pos="0.02143 -0.03377 0.03000" euler="0 0 5.278"/>
+  <geom name="prism85" type="mesh" mesh="prism" euler="0 0 5.27788"/>
+  <geom name="hole86" class="hole" pos="0.02351 -0.03236 0.03000" euler="0 0 5.341"/>
+  <geom name="prism86" type="mesh" mesh="prism" euler="0 0 5.34071"/>
+  <geom name="hole87" class="hole" pos="0.02550 -0.03082 0.03000" euler="0 0 5.404"/>
+  <geom name="prism87" type="mesh" mesh="prism" euler="0 0 5.40354"/>
+  <geom name="hole88" class="hole" pos="0.02738 -0.02916 0.03000" euler="0 0 5.466"/>
+  <geom name="prism88" type="mesh" mesh="prism" euler="0 0 5.46637"/>
+  <geom name="hole89" class="hole" pos="0.02916 -0.02738 0.03000" euler="0 0 5.529"/>
+  <geom name="prism89" type="mesh" mesh="prism" euler="0 0 5.52920"/>
+  <geom name="hole90" class="hole" pos="0.03082 -0.02550 0.03000" euler="0 0 5.592"/>
+  <geom name="prism90" type="mesh" mesh="prism" euler="0 0 5.59203"/>
+  <geom name="hole91" class="hole" pos="0.03236 -0.02351 0.03000" euler="0 0 5.655"/>
+  <geom name="prism91" type="mesh" mesh="prism" euler="0 0 5.65487"/>
+  <geom name="hole92" class="hole" pos="0.03377 -0.02143 0.03000" euler="0 0 5.718"/>
+  <geom name="prism92" type="mesh" mesh="prism" euler="0 0 5.71770"/>
+  <geom name="hole93" class="hole" pos="0.03505 -0.01927 0.03000" euler="0 0 5.781"/>
+  <geom name="prism93" type="mesh" mesh="prism" euler="0 0 5.78053"/>
+  <geom name="hole94" class="hole" pos="0.03619 -0.01703 0.03000" euler="0 0 5.843"/>
+  <geom name="prism94" type="mesh" mesh="prism" euler="0 0 5.84336"/>
+  <geom name="hole95" class="hole" pos="0.03719 -0.01472 0.03000" euler="0 0 5.906"/>
+  <geom name="prism95" type="mesh" mesh="prism" euler="0 0 5.90619"/>
+  <geom name="hole96" class="hole" pos="0.03804 -0.01236 0.03000" euler="0 0 5.969"/>
+  <geom name="prism96" type="mesh" mesh="prism" euler="0 0 5.96903"/>
+  <geom name="hole97" class="hole" pos="0.03874 -0.00995 0.03000" euler="0 0 6.032"/>
+  <geom name="prism97" type="mesh" mesh="prism" euler="0 0 6.03186"/>
+  <geom name="hole98" class="hole" pos="0.03929 -0.00750 0.03000" euler="0 0 6.095"/>
+  <geom name="prism98" type="mesh" mesh="prism" euler="0 0 6.09469"/>
+  <geom name="hole99" class="hole" pos="0.03968 -0.00501 0.03000" euler="0 0 6.158"/>
+  <geom name="prism99" type="mesh" mesh="prism" euler="0 0 6.15752"/>
+  <geom name="hole100" class="hole" pos="0.03992 -0.00251 0.03000" euler="0 0 6.220"/>
+  <geom name="prism100" type="mesh" mesh="prism" euler="0 0 6.22035"/>
+</body>

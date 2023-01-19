@@ -1,0 +1,48 @@
+<mujoco>
+  <!-- mujoco solver parameters and setup -->
+  <include file="scene.xml"/>
+
+  <!-- set to default values at the moment -->
+  <default class="contact">
+    <default class="hole">
+      <geom type="box" mass="0.0099" size="0.02500 0.00047 0.01000"/>
+    </default>
+
+    <default class="peg">
+      <!-- size = (radius, half-heihgt) -->
+      <geom type="cylinder" mass="0.5" size="0.005 0.03" euler="0 0 0"
+                priority="2" condim="6" friction="0.8 0.05 0.001"
+                solimp="0.9 0.95 0.001 0.5 2" solref="0.02 1."/>
+    </default>
+  </default>
+
+  <!-- triangular prism mesh -->
+  <asset>
+    <mesh name="prism" vertex="0.0150 0.00047 0.0200  0.0150 0.00047 0.0400  0.06500 0.00047 0.02000  0.06500 0.00047 0.04000  0.06490 0.00361 0.02000  0.06490 0.00361 0.04000"/>
+  </asset>
+
+  <!-- panda robot -->
+  <include file="../franka_sim/assets/assets.xml"/>
+  <!-- <compiler meshdir=""/> -->
+
+  <worldbody>
+      <include file="chain_peg.xml"/>
+  </worldbody>
+
+  <include file='../franka_sim/assets/force_actuator.xml'/>
+
+
+  <!-- default class to adjust the paramters of peg -->
+  <worldbody>
+    <body name="hole" pos="0.53 0.012 0.1288">
+      <geom name="block1" type="box" mass="0.1" pos="0 0.04 0.02" size="0.02 0.02 0.02"
+        priority="3" condim="6" friction="1.2 0.1 0.001"
+        solimp="0.9 0.95 0.001 0.5 2" solref="0.02 1."/>
+      <geom name="block2" type="box" mass="0.1" pos="0 0. 0.02" size="0.02 0.02 0.015"/>
+      <geom name="block3" type="box" mass="0.1" pos="0 -0.04 0.02" size="0.02 0.02 0.01"
+        priority="3" condim="6" friction="0.4 0.02 0.001"
+        solimp="0.9 0.95 0.001 0.5 2" solref="0.02 1."/>
+    </body>
+  </worldbody>
+
+</mujoco>
