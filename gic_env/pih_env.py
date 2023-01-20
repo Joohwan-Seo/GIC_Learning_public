@@ -6,9 +6,9 @@ import numpy as np
 import time, csv, os
 
 import matplotlib.pyplot as plt
-from utils.robot_state import RobotState
-from utils.mujoco import set_state
-from utils.base import Primitive, PrimitiveStatus
+from gic_env.utils.robot_state import RobotState
+from gic_env.utils.mujoco import set_state
+from gic_env.utils.base import Primitive, PrimitiveStatus
 
 
 class RobotEnv(Env):
@@ -21,6 +21,7 @@ class RobotEnv(Env):
                             [1, 0, 0],
                             [0, 0, -1]])
 
+        self.show_viewer = show_viewer
         self.load_xml()
 
         self.robot_state = RobotState(self.sim, "end_effector", self.robot_name)
@@ -31,8 +32,6 @@ class RobotEnv(Env):
         self.dt = 0.002
         self.max_iter = int(max_time/self.dt)
         self.dummy = 'dummy_change'
-
-        self.show_viewer = show_viewer
 
         self.logging = False
         self.csv_name = 'square_PIH_4'
@@ -56,7 +55,10 @@ class RobotEnv(Env):
 
         self.model = mujoco_py.load_model_from_path(model_path)
         self.sim = mujoco_py.MjSim(self.model)
-        self.viewer = mujoco_py.MjViewer(self.sim)
+        if self.show_viewer:
+            self.viewer = mujoco_py.MjViewer(self.sim)
+        else:
+            self.viewer = None
 
     def initialize_sim(self):
         eg = self.initial_sample()
@@ -151,7 +153,7 @@ class RobotEnv(Env):
 
         obs = np.vstack((eg,eV)).reshape((-1,))
 
-        x, = self.robot_state.get_pose_mine()
+        x,R = self.robot_state.get_pose_mine()
 
         if abs(x[2] - self.xd[2]) < 0.024:
             done = True
@@ -190,7 +192,7 @@ class RobotEnv(Env):
         Jb = self.robot_state.get_body_jacobian()
 
         #### For future use
-        # M,C,G = self.robot_state.get_dynamic_matrices()
+        M,C,G = self.robot_state.get_dynamic_matrices()
         ####
 
         #1. get error pos vector

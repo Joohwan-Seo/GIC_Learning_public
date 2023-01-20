@@ -43,11 +43,11 @@ class RobotState:
 
     def load_dll(self):
         if self.robot_name == 'ur5e':
-            self.c = cdll.LoadLibrary("./dynamic_models/UR5e/funCori_UR5e_sq.so")
-            self.g = cdll.LoadLibrary("./dynamic_models/UR5e/funGrav_UR5e_sq.so")
-            self.m = cdll.LoadLibrary("./dynamic_models/UR5e/funMass_UR5e_sq.so")
-            self.g_st = cdll.LoadLibrary("./dynamic_models/UR5e/g_st.so")
-            self.Jb = cdll.LoadLibrary("./dynamic_models/UR5e/Jb.so")
+            self.c = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/funCori_UR5e_sq.so")
+            self.g = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/funGrav_UR5e_sq.so")
+            self.m = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/funMass_UR5e_sq.so")
+            self.g_st = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/g_st.so")
+            self.Jb = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/Jb.so")
         else:
             print('!!!WARNING!!!  That robot type is not implemented yet! (and maybe never ever)')
             quit()
