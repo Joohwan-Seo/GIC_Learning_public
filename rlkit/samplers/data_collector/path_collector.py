@@ -17,7 +17,7 @@ class MdpPathCollector(PathCollector):
             render=False,
             render_kwargs=None,
             rollout_fn=rollout,
-            save_env_in_snapshot=True,
+            save_env_in_snapshot=False,#NOTE(JH)
     ):
         if render_kwargs is None:
             render_kwargs = {}

@@ -5,6 +5,8 @@ import mujoco_py
 import numpy as np
 import time, csv, os
 
+from gym import utils
+
 import matplotlib.pyplot as plt
 from gic_env.utils.robot_state import RobotState
 from gic_env.utils.mujoco import set_state
@@ -43,6 +45,8 @@ class RobotEnv(Env):
 
         self.observation_space = spaces.Box(low=-5.0, high=5.0, shape=(self.robot_state.N * 2,))
         self.action_space = spaces.Box(low=10, high=250, shape=(6,))
+
+        utils.EzPickle.__init__(self)
 
     def load_xml(self):
         if self.robot_name == 'ur5e':
@@ -163,7 +167,7 @@ class RobotEnv(Env):
         #TODO reward function
         reward = self.get_reward(done,eg)
         #TODO generate done functionality
-        info = None
+        info = dict()
 
         return obs, reward, done, info
 
