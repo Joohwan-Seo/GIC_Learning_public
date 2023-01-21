@@ -14,7 +14,7 @@ from gic_env.utils.base import Primitive, PrimitiveStatus
 
 
 class RobotEnv(Env):
-    def __init__(self, robot_name = 'ur5e', env_type = 'square_PIH', max_time = 8, show_viewer = False):
+    def __init__(self, robot_name = 'ur5e', env_type = 'square_PIH', max_time = 10, show_viewer = False):
         self.robot_name = robot_name
         self.env_type = env_type
 
@@ -43,8 +43,9 @@ class RobotEnv(Env):
         self.kt = 50
         self.ko = 10
 
-        self.observation_space = spaces.Box(low=-5.0, high=5.0, shape=(self.robot_state.N * 2,))
-        self.action_space = spaces.Box(low=10, high=250, shape=(6,))
+        self.iter = 0
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.robot_state.N * 2,))
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,))
 
         utils.EzPickle.__init__(self)
 
@@ -71,6 +72,7 @@ class RobotEnv(Env):
         eg = self.initial_sample()
         eV = np.zeros((self.robot_state.N,1))
         obs = np.vstack((eg,eV)).reshape((-1))
+        self.iter = 0 
         return obs
 
     def initial_sample(self):
@@ -122,24 +124,6 @@ class RobotEnv(Env):
 
             self.time_step = i
 
-    def test_action(self):
-        t = self.dt * self.time_step
-        amp1 = 1
-        amp2 = 0.25
-
-        a1 = 2*amp1 * np.cos(1.2*t)
-        a2 = -amp1 * np.sin(1.5*t) + 0.10
-        a3 = amp1 * np.sin(1.9*t) - 0.10
-        a4 = -amp2 * np.sin(0.8*t)
-        a5 = -amp2 * np.sin(0.7*t) + 0.03
-        a6 = -amp2* 2 * np.sin(0.75*t)
-
-        # a1 = 0; a2 = 0; a3 = 0; a4 = 0; a5 = 0
-
-        action = np.array([a1,a2,a3,a4,a5,a6])
-
-        return action
-
     def step(self, action):
         self.robot_state.update()
 
@@ -159,24 +143,30 @@ class RobotEnv(Env):
 
         x,R = self.robot_state.get_pose_mine()
 
-        if abs(x[2] - self.xd[2]) < 0.024:
+        dis = np.sqrt(np.trace(np.eye(3) - self.Rd.T @ R) + 0.5 * (x - self.xd).T @ (x - self.xd))
+
+        if dis < 0.2 and abs(x[2] - self.xd[2]) < 0.024:
             done = True
         else:
             done = False
 
         #TODO reward function
-        reward = self.get_reward(done,eg)
+        reward = self.get_reward(done,x,R)
         #TODO generate done functionality
         info = dict()
 
+        self.iter +=1 
+
         return obs, reward, done, info
 
-    def get_reward(self,done,eg):#TODO()
+    def get_reward(self,done,x,R):#TODO()
         scale = 0.1
-        reward = -scale * np.linalg.norm(eg)
-        reward = np.clip(reward,-1,0)
+        scale2 = 2
+        dis = np.sqrt(np.trace(np.eye(3) - self.Rd.T @ R) + 0.5 * (x - self.xd).T @ (x - self.xd))
+        dis = np.clip(dis,0,1)
+        reward = -scale * dis
         if done:
-            reward = 2
+            reward = (self.max_iter - self.iter) * self.dt * scale2
         return reward 
 
     def get_eg(self):
@@ -205,14 +195,31 @@ class RobotEnv(Env):
         #2. get error vel vector        
         eV = self.get_eV()
 
-        Kg = np.diag(action)
-        Kd = np.diag(5*np.sqrt(action))
+        Kg = self.convert_gains(action)
+        Kd = 5*np.sqrt(Kg)
 
         tau_tilde = -Kg @ eg -Kd @ eV
 
         tau_cmd = Jb.T @ tau_tilde + G    
 
         return tau_cmd.reshape((-1,))
+    
+    def convert_gains(self,action):
+        # print(action)
+        axy = action[0:2]
+        az = action[2]
+        ao = action[3:6]
+
+        kt_xy = pow(10,0.85*axy + 1.85) # scaling to (1,2.7)
+        kt_z = pow(10,0.5*az + 1.2) #scaling to 0.7, 1.7 >> 5, 50
+        kt = np.hstack((kt_xy,kt_z))
+        ko = pow(10,0.5*ao + 1.2) #scaling to 0.7, 1.7
+
+        ko_tilde = np.array([(ko[1]+ko[2])/2, (ko[0]+ko[2])/2, (ko[0]+ko[1])/2])
+
+        Kg = np.diag(np.hstack((kt,ko_tilde)))
+
+        return Kg
 
     
     def vee_map(self,R):
