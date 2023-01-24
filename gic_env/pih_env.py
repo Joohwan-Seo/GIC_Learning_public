@@ -165,8 +165,11 @@ class RobotEnv(Env):
         dis = np.sqrt(np.trace(np.eye(3) - self.Rd.T @ R) + 0.5 * (x - self.xd).T @ (x - self.xd))
         dis = np.clip(dis,0,1)
         reward = -scale * dis
+        if dis < 0.2 and abs(x[2] - self.xd[2]) < 0.04:
+            reward = scale2 * (0.04 - abs(x[2] - self.xd[2]))
         if done:
-            reward = (self.max_iter - self.iter) * self.dt * scale2
+            reward = 2
+
         return reward 
 
     def get_eg(self):
@@ -211,7 +214,7 @@ class RobotEnv(Env):
         ao = action[3:6]
 
         kt_xy = pow(10,0.85*axy + 1.85) # scaling to (1,2.7)
-        kt_z = pow(10,0.5*az + 1.2) #scaling to 0.7, 1.7 >> 5, 50
+        kt_z = pow(10,0.5*az + 1.0) #scaling to 0.5, 1.5 >> 3, 30
         kt = np.hstack((kt_xy,kt_z))
         ko = pow(10,0.5*ao + 1.2) #scaling to 0.7, 1.7
 

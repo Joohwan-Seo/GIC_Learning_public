@@ -34,6 +34,41 @@ class MdpPathCollector(PathCollector):
 
         self._save_env_in_snapshot = save_env_in_snapshot
 
+    def collect_expert_paths(
+            self,
+            max_path_length,
+            num_steps,
+            discard_incomplete_paths,
+    ):
+        paths = []
+        num_steps_collected = 0
+        while num_steps_collected < num_steps:
+            max_path_length_this_loop = min(  # Do not go over num_steps
+                max_path_length,
+                num_steps - num_steps_collected,
+            )
+            path = self._rollout_fn(
+                self._env,
+                self._policy,
+                max_path_length=max_path_length_this_loop,
+                render=self._render,
+                render_kwargs=self._render_kwargs,
+                use_expert_policy=True,
+            )
+            path_len = len(path['actions'])
+            if (
+                    path_len != max_path_length
+                    and not path['dones'][-1]
+                    and discard_incomplete_paths
+            ):
+                break
+            num_steps_collected += path_len
+            paths.append(path)
+        self._num_paths_total += len(paths)
+        self._num_steps_total += num_steps_collected
+        self._epoch_paths.extend(paths)
+        return paths
+
     def collect_new_paths(
             self,
             max_path_length,
