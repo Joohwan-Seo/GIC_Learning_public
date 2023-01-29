@@ -83,6 +83,12 @@ def get_contact_force(mj_model, mj_data, body_name, frame_pos, frame_quat):
     # reverse order to get force:torque format
     return np.concatenate((trn_force[3:], trn_force[:3]))
 
+def get_contact_force_mine(mj_model, mj_data, body_name):
+    bodyId = mujoco_py.functions.mj_name2id(mj_model, MJ_BODY_OBJ, body_name)
+    force_com = mj_data.cfrc_ext[bodyId, :]
+
+    return np.hstack((force_com[:3], force_com[3:]))
+
 
 def get_geom_pose(model, geom_name):
     """Return the geom pose (relative to parent body).

@@ -14,7 +14,7 @@ from gic_env.utils.base import Primitive, PrimitiveStatus
 
 
 class RobotEnv(Env):
-    def __init__(self, robot_name = 'ur5e', env_type = 'square_PIH', max_time = 10, show_viewer = False):
+    def __init__(self, robot_name = 'ur5e', env_type = 'square_PIH', max_time = 10, show_viewer = False, obs_type = 'pos_vel'):
         self.robot_name = robot_name
         self.env_type = env_type
 
@@ -29,7 +29,7 @@ class RobotEnv(Env):
         self.robot_state = RobotState(self.sim, "end_effector", self.robot_name)
         self.sim_primitive = Primitive(self.robot_state, controller=None)
 
-        self.initialize_sim()
+        self.reset()
 
         self.dt = 0.002
         self.max_iter = int(max_time/self.dt)
@@ -44,10 +44,24 @@ class RobotEnv(Env):
         self.ko = 10
 
         self.iter = 0
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.robot_state.N * 2,))
+
+        print('I am here')
+
+        self.obs_type = obs_type
+
+        if self.obs_type == 'pos_vel':
+            self.num_obs = self.robot_state.N * 2
+        elif self.obs_type == 'pos':
+            self.num_obs = self.robot_state.N
+
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_obs,))
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,))
 
         utils.EzPickle.__init__(self)
+
+        self.prev_x = np.zeros((3,))
+        self.stuck_count = 0
+        self.done_count = 0
 
     def load_xml(self):
         if self.robot_name == 'ur5e':
@@ -65,14 +79,19 @@ class RobotEnv(Env):
         else:
             self.viewer = None
 
-    def initialize_sim(self):
-        eg = self.initial_sample()
-
     def reset(self):
         eg = self.initial_sample()
         eV = np.zeros((self.robot_state.N,1))
-        obs = np.vstack((eg,eV)).reshape((-1))
+        if self.obs_type == 'pos_vel':
+            obs = np.vstack((eg,eV)).reshape((-1,))
+        elif self.obs_type == 'pos':
+            obs = eg.reshape((-1,))
+
         self.iter = 0 
+        self.prev_x = np.zeros((3,))
+        self.stuck_count = 0
+        self.done_count = 0
+
         return obs
 
     def initial_sample(self):
@@ -116,13 +135,40 @@ class RobotEnv(Env):
 
     def test(self):        
         for i in range(self.max_iter):
-            action = np.array([self.kt,self.kt,0.2*self.kt,self.ko,self.ko,self.ko])
+            # print(i)
+            action = self.get_expert_action()
             obs, reward, done, info = self.step(action)
 
             if self.show_viewer:
                 self.viewer.render()
 
+            if done:
+                break
+
             self.time_step = i
+
+    def get_expert_action(self):
+        x,R = self.robot_state.get_pose_mine()
+        rot = np.trace(np.eye(3) - self.Rd.T @ R)
+        trans = 0.5 * (x - self.xd).T @ (x - self.xd)
+        dis = np.sqrt(rot + trans)
+
+        z_part = abs(x[2] - self.xd[2])
+        trans_part1 = np.sqrt(0.5 * (x[0:2] - self.xd[0:2]).T @ (x[0:2] - self.xd[0:2]))
+
+        if dis > 0.5:
+            a0 = 0.6; a1 = 0.6; a2 = 0.1; a3 = 0.6; a4 = 0.6; a5 = 0.6
+        elif z_part < 0.3:
+            a0 = 0.9; a1 = 0.9; a2 = -0.9; a3 = 0.9; a4 = 0.9; a5 = 0.9
+        elif z_part < 0.08 and np.sqrt(rot) < 0.002 and trans_part1 < 0.002:
+            a0 = 0.9; a1 = 0.9; a2 = 0.9; a3 = 0.9; a4 = 0.9; a5 = 0.9
+        else:
+            a0 = 0; a1 = 0; a2 = 0; a3 = 0; a4 = 0; a5 = 0
+
+        # print(np.sqrt(rot), z_part, trans_part1)
+
+        action = np.array([a0,a1,a2,a3,a4,a5])
+        return action
 
     def step(self, action):
         self.robot_state.update()
@@ -139,25 +185,53 @@ class RobotEnv(Env):
         eg = self.get_eg()
         eV = self.get_eV()
 
-        obs = np.vstack((eg,eV)).reshape((-1,))
+        if self.obs_type == 'pos_vel':
+            obs = np.vstack((eg,eV)).reshape((-1,))
+        elif self.obs_type == 'pos':
+            obs = eg.reshape((-1,))
 
         x,R = self.robot_state.get_pose_mine()
 
         dis = np.sqrt(np.trace(np.eye(3) - self.Rd.T @ R) + 0.5 * (x - self.xd).T @ (x - self.xd))
 
-        if dis < 0.2 and abs(x[2] - self.xd[2]) < 0.024:
+        stuck = self.detect_stuck(x,R)
+
+        if self.done_count >= 20 and not stuck:
+            done = True
+        elif stuck:
             done = True
         else:
             done = False
+
+        if self.iter == self.max_iter -1:
+            done = True
 
         #TODO reward function
         reward = self.get_reward(done,x,R)
         #TODO generate done functionality
         info = dict()
 
+        # print(done)
+
         self.iter +=1 
 
+        # print(reward)
+
         return obs, reward, done, info
+    
+    def detect_stuck(self,x,R):
+        if np.linalg.norm(x - self.prev_x) < 1e-05:
+            self.stuck_count += 1
+        else:
+            self.stuck_count = 0
+
+        if self.stuck_count >= 500:
+            stuck = True
+        else:
+            stuck = False
+
+        self.prev_x = x
+        return stuck
 
     def get_reward(self,done,x,R):#TODO()
         scale = 0.1
@@ -167,7 +241,8 @@ class RobotEnv(Env):
         reward = -scale * dis
         if dis < 0.2 and abs(x[2] - self.xd[2]) < 0.04:
             reward = scale2 * (0.04 - abs(x[2] - self.xd[2]))
-        if done:
+        if dis < 0.1 and abs(x[2] - self.xd[2]) < 0.024:
+            self.done_count += 1
             reward = 2
 
         return reward 
@@ -201,20 +276,21 @@ class RobotEnv(Env):
         Kg = self.convert_gains(action)
         Kd = 5*np.sqrt(Kg)
 
-        tau_tilde = -Kg @ eg -Kd @ eV
+        Fe = self.robot_state.get_ee_force_mine()
+
+        tau_tilde = -Kg @ eg -Kd @ eV - Fe.reshape((-1,1))
 
         tau_cmd = Jb.T @ tau_tilde + G    
 
         return tau_cmd.reshape((-1,))
     
     def convert_gains(self,action):
-        # print(action)
         axy = action[0:2]
         az = action[2]
         ao = action[3:6]
 
         kt_xy = pow(10,0.85*axy + 1.85) # scaling to (1,2.7)
-        kt_z = pow(10,0.5*az + 1.0) #scaling to 0.5, 1.5 >> 3, 30
+        kt_z = pow(10,0.90*az + 1.5) # 0.6 to 2.4
         kt = np.hstack((kt_xy,kt_z))
         ko = pow(10,0.5*ao + 1.2) #scaling to 0.7, 1.7
 
@@ -253,5 +329,5 @@ if __name__ == "__main__":
     robot_name = 'ur5e' # Panda currently unavailable - we don't have dynamic model of this right now.
     env_type = 'square_PIH'
     show_viewer = True
-    RE = RobotEnv(robot_name, env_type, show_viewer)
+    RE = RobotEnv(robot_name, env_type, show_viewer = True, obs_type = 'pos')
     RE.test()

@@ -3,6 +3,8 @@ from functools import partial
 import numpy as np
 import copy
 
+import time
+
 create_rollout_function = partial
 
 
@@ -106,7 +108,10 @@ def rollout(
         env.render(**render_kwargs)
     while path_length < max_path_length:
         if use_expert_policy:
-            next_o, r, done, env_info = env.step_with_expert()
+            a = env.get_expert_action()
+            agent_info = {}
+            next_o, r, done, env_info = env.step(copy.deepcopy(a))
+
         else:
             raw_obs.append(o)
             o_for_agent = preprocess_obs_for_policy_fn(o)
@@ -116,6 +121,7 @@ def rollout(
                 full_o_postprocess_func(env, agent, o)
 
             next_o, r, done, env_info = env.step(copy.deepcopy(a))
+
         if render:
             env.render(**render_kwargs)
         observations.append(o)

@@ -2,9 +2,9 @@ import numpy as np
 from mujoco_py import functions
 
 from learn_seq.utils.filter import ButterLowPass
-from learn_seq.utils.mujoco import (MJ_SITE_OBJ, get_contact_force,
+from gic_env.utils.mujoco import (MJ_SITE_OBJ, get_contact_force,
                                     inverse_frame, pose_transform,
-                                    transform_spatial)
+                                    transform_spatial, get_contact_force_mine)
 
 from ctypes import *
 
@@ -154,6 +154,10 @@ class RobotState:
         g_st = g_st.reshape((4,4)).T
 
         return g_st[0:3,3], g_st[0:3,0:3]
+    
+    def get_ee_force_mine(self):
+        fe = get_contact_force_mine(self.model, self.data, "peg")
+        return fe
 
     def get_ee_force(self, frame_quat=None):
         """Get current force torque acting on the end-effector,

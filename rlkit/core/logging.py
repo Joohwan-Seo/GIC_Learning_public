@@ -312,6 +312,7 @@ class Logger(object):
 
     def save_itr_params(self, itr, params):
         if self._snapshot_dir:
+            self._snapshot_mode = 'all'
             if self._snapshot_mode == 'all':
                 file_name = osp.join(self._snapshot_dir, 'itr_%d.pkl' % itr)
                 torch.save(params, file_name)

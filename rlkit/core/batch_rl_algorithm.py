@@ -5,6 +5,8 @@ from rlkit.core.rl_algorithm import BaseRLAlgorithm
 from rlkit.data_management.replay_buffer import ReplayBuffer
 from rlkit.samplers.data_collector import PathCollector
 
+import time
+
 
 class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
     def __init__(
@@ -24,7 +26,7 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
             num_train_loops_per_epoch=1,
             min_num_steps_before_training=0,
             start_epoch=0, # negative epochs are offline, positive epochs are online
-            use_expert_policy=False
+            use_expert_policy=False,         
     ):
         super().__init__(
             trainer,
@@ -67,6 +69,7 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
                 )
                 self.replay_buffer.add_paths(init_expl_paths)
                 self.expl_data_collector.end_epoch(-1)
+                time.sleep(10)
             else:
                 init_expl_paths = self.expl_data_collector.collect_new_paths(
                     self.max_path_length,
@@ -85,11 +88,19 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
         gt.stamp('evaluation sampling')
 
         for _ in range(self.num_train_loops_per_epoch):
-            new_expl_paths = self.expl_data_collector.collect_new_paths(
+            if self.use_expert_policy and self.epoch%10 == 0:
+                print('Expert calling')
+                new_expl_paths = self.expl_data_collector.collect_expert_paths(
                 self.max_path_length,
                 self.num_expl_steps_per_train_loop,
                 discard_incomplete_paths=False,
-            )
+                )
+            else:
+                new_expl_paths = self.expl_data_collector.collect_new_paths(
+                self.max_path_length,
+                self.num_expl_steps_per_train_loop,
+                discard_incomplete_paths=False,
+                )
             gt.stamp('exploration sampling', unique=False)
 
             if not self.offline_rl:
