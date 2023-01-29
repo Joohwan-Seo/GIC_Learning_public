@@ -25,9 +25,9 @@ class RobotEnv(Env):
 
         self.show_viewer = show_viewer
         self.load_xml()
+        self.obs_type = obs_type
 
         self.robot_state = RobotState(self.sim, "end_effector", self.robot_name)
-        self.sim_primitive = Primitive(self.robot_state, controller=None)
 
         self.reset()
 
@@ -45,17 +45,18 @@ class RobotEnv(Env):
 
         self.iter = 0
 
-        print('I am here')
-
-        self.obs_type = obs_type
+        # print('I am here')        
 
         if self.obs_type == 'pos_vel':
             self.num_obs = self.robot_state.N * 2
         elif self.obs_type == 'pos':
             self.num_obs = self.robot_state.N
 
+        if self.robot_name =='ur5e':
+            self.num_act = 6
+
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_obs,))
-        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,))
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(self.num_act,))
 
         utils.EzPickle.__init__(self)
 
