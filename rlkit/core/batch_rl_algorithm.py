@@ -69,7 +69,7 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
                 )
                 self.replay_buffer.add_paths(init_expl_paths)
                 self.expl_data_collector.end_epoch(-1)
-                time.sleep(10)
+                print(self.replay_buffer)
             else:
                 init_expl_paths = self.expl_data_collector.collect_new_paths(
                     self.max_path_length,

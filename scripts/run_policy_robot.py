@@ -14,7 +14,7 @@ def simulate_policy(args):
     data = torch.load(args.file)
     policy = data['evaluation/policy']
     print(type(policy))
-    env = RobotEnv(show_viewer = True)
+    env = RobotEnv(show_viewer = True, obs_type = 'pos_vel', hole_ori = args.case, testing = True)
     print("Policy loaded")
     if args.gpu:
         set_gpu_mode(True)
@@ -42,11 +42,12 @@ if __name__ == "__main__":
     parser.add_argument('--H', type=int, default=5000,
                         help='Max length of rollout')
     parser.add_argument('--gpu', default = True, action='store_true')
+    parser.add_argument('--case', type=str, default='default')
     args = parser.parse_args()
 
     # print(args)
 
-    file_name = '/deeprl/research/GIC-RL/data/GIC-RL-nominal-expert-long/GIC_RL_nominal_expert_long_2023_01_27_22_27_18_0000--s-0/itr_6140.pkl'
+    # file_name = '/deeprl/research/GIC-RL/data/GIC-RL-nominal-expert-long/GIC_RL_nominal_expert_long_2023_01_27_22_27_18_0000--s-0/itr_6140.pkl'
     # args['file'] = file_name
 
     simulate_policy(args)

@@ -21,7 +21,7 @@ def main(file_name):
 
 
 if __name__ == "__main__":
-    log = '~/deeprl/research/GIC-RL/data/GIC-RL-nominal-expert-long/GIC_RL_nominal_expert_long_2023_01_27_22_27_18_0000--s-0/'
+    log = 'data/Expert-pos-bump/Expert_pos_bump_2023_02_08_13_41_22_0000--s-0/'
     file_name = log + 'progress.csv'
 
     main(file_name)

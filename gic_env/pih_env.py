@@ -14,14 +14,53 @@ from gic_env.utils.base import Primitive, PrimitiveStatus
 
 
 class RobotEnv(Env):
-    def __init__(self, robot_name = 'ur5e', env_type = 'square_PIH', max_time = 10, show_viewer = False, obs_type = 'pos_vel'):
+    def __init__(self, robot_name = 'ur5e', env_type = 'square_PIH', max_time = 10, show_viewer = False, obs_type = 'pos_vel', hole_ori = 'default', testing = False):
         self.robot_name = robot_name
         self.env_type = env_type
+        self.hole_ori = hole_ori
+        self.testing = testing
 
-        self.xd = np.array([0.60, 0.012, 0.05])
-        self.Rd = np.array([[0, 1, 0],
-                            [1, 0, 0],
-                            [0, 0, -1]])
+
+        #NOTE(JS) The determinant of the desired rotation matrix should be always 1.
+        # (by the definition of the rotational matrix.)
+        if self.hole_ori == 'default':
+            self.xd = np.array([0.60, 0.012, 0.05])
+            self.Rd = np.array([[0, 1, 0],
+                                [1, 0, 0],
+                                [0, 0, -1]])
+        elif self.hole_ori == 'case1':
+            self.xd = np.array([0.60, 0.112, 0.05])
+            Rt = np.array([[1, 0, 0],
+                           [0, 0.8660, -0.50],
+                           [0,0.50,0.8660]])
+            self.Rd = np.array([[0, 1, 0],
+                                [1, 0, 0],
+                                [0, 0, -1]])
+            self.Rd = Rt @ self.Rd
+
+        elif self.hole_ori == 'case2':
+            self.xd = np.array([0.75, 0.012, 0.10])
+            Rt = np.array([[0.8660, 0, -0.5],
+                           [0, 1, 0],
+                           [0.5, 0, 0.8660]])
+            self.Rd = np.array([[0, 1, 0],
+                                [1, 0, 0],
+                                [0, 0, -1]])
+            self.Rd = Rt @ self.Rd
+
+        elif self.hole_ori == 'case3':
+            self.xd = np.array([0.85, 0.012, 0.25])
+            Rt = np.array([[0, 0, -1],
+                           [0, 1, 0],
+                           [1, 0, 0]])
+            self.Rd = np.array([[0, 1, 0],
+                                [1, 0, 0],
+                                [0, 0, -1]])
+            self.Rd = Rt @ self.Rd
+        # self.xd = np.array([0.60, 0.012, 0.250])
+        # self.Rd = np.array([[0, 0, 1],
+        #                     [0, 1, 0],
+        #                     [-1, 0, 0]])
 
         self.show_viewer = show_viewer
         self.load_xml()
@@ -67,7 +106,14 @@ class RobotEnv(Env):
     def load_xml(self):
         if self.robot_name == 'ur5e':
             # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/sliding_test.xml"
-            model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/square_pih_ur5e.xml"
+            if self.hole_ori == 'default':
+                model_path = "gic_env/mujoco_models/pih/square_pih_ur5e.xml"
+            elif self.hole_ori == 'case1':
+                model_path = "gic_env/mujoco_models/pih/square_pih_ur5e_case1.xml"
+            elif self.hole_ori == 'case2':
+                model_path = "gic_env/mujoco_models/pih/square_pih_ur5e_case2.xml"
+            elif self.hole_ori == 'case3':
+                model_path = "gic_env/mujoco_models/pih/square_pih_ur5e_case3.xml"
         elif self.robot_name == 'panda':
             # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/sliding.xml"
             # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/square_pih.xml"
@@ -98,7 +144,16 @@ class RobotEnv(Env):
     def initial_sample(self):
         Rd = self.Rd
         if self.robot_name == 'ur5e':
-            q0 = np.array([0, -2*np.pi/3, np.pi/4, -1 * np.pi/4, -np.pi/2, 0.1])
+            if self.hole_ori == 'default':
+                q0 = np.array([0, -2*np.pi/3, np.pi/4, -1 * np.pi/4, -np.pi/2, 0.1])
+            elif self.hole_ori == 'case1':
+                q0 = np.array([-0.5, -2*np.pi/3, np.pi/4, -1 * np.pi/4, -np.pi/2, 0.1])
+            elif self.hole_ori == 'case2':
+                q0 = np.array([0, -3*np.pi/4, 2*np.pi/4, -2 * np.pi/3, -np.pi/2, 0.1])
+            elif self.hole_ori == 'case3':
+                q0 = np.array([0, -2*np.pi/2.5, 2*np.pi/3, -2 * np.pi/3, -np.pi/2, 0.1])
+            else:
+                q0 = np.array([0, -2*np.pi/3, np.pi/4, -1 * np.pi/4, -np.pi/2, 0.1])
 
             while True:
                 bias = np.array([0, 0.5, -0.5, 0.5, 0, 0])
@@ -157,18 +212,20 @@ class RobotEnv(Env):
         z_part = abs(x[2] - self.xd[2])
         trans_part1 = np.sqrt(0.5 * (x[0:2] - self.xd[0:2]).T @ (x[0:2] - self.xd[0:2]))
 
-        if dis > 0.5:
-            a0 = 0.6; a1 = 0.6; a2 = 0.1; a3 = 0.6; a4 = 0.6; a5 = 0.6
-        elif z_part < 0.3:
+        if dis > 1:
+            a0 = 0.6; a1 = 0.6; a2 = -0.1; a3 = 0.6; a4 = 0.6; a5 = 0.6
+        elif z_part < 0.4:
             a0 = 0.9; a1 = 0.9; a2 = -0.9; a3 = 0.9; a4 = 0.9; a5 = 0.9
-        elif z_part < 0.08 and np.sqrt(rot) < 0.002 and trans_part1 < 0.002:
-            a0 = 0.9; a1 = 0.9; a2 = 0.9; a3 = 0.9; a4 = 0.9; a5 = 0.9
+        elif z_part < 0.12 and np.sqrt(rot) < 0.002 and trans_part1 < 0.002:
+            a0 = 0.9; a1 = 0.9; a2 = 0.8; a3 = 0.9; a4 = 0.9; a5 = 0.9
         else:
-            a0 = 0; a1 = 0; a2 = 0; a3 = 0; a4 = 0; a5 = 0
-
-        # print(np.sqrt(rot), z_part, trans_part1)
+            a0 = 0.8; a1 = 0.8; a2 = -0.6; a3 = 0.8; a4 = 0.8; a5 = 0.8
 
         action = np.array([a0,a1,a2,a3,a4,a5])
+
+        action += np.random.randn(6,) * np.array([.05, .05, .05, .05, .05, .05])
+        
+        action = np.clip(action,-0.99,0.99)
         return action
 
     def step(self, action):
@@ -186,6 +243,8 @@ class RobotEnv(Env):
         eg = self.get_eg()
         eV = self.get_eV()
 
+        # print('eg', eg)
+
         if self.obs_type == 'pos_vel':
             obs = np.vstack((eg,eV)).reshape((-1,))
         elif self.obs_type == 'pos':
@@ -195,14 +254,23 @@ class RobotEnv(Env):
 
         dis = np.sqrt(np.trace(np.eye(3) - self.Rd.T @ R) + 0.5 * (x - self.xd).T @ (x - self.xd))
 
+        dis_trans = np.sqrt((x - self.xd).T @ (x - self.xd))
+
         stuck = self.detect_stuck(x,R)
 
-        if self.done_count >= 20 and not stuck:
-            done = True
-        elif stuck:
-            done = True
-        else:
-            done = False
+        if not self.testing:
+            if self.done_count >= 20 and not stuck:
+                done = True
+            elif stuck:
+                done = True
+            else:
+                done = False
+        elif self.testing:
+            if dis_trans < 0.028:
+                done = True
+            else:
+                done = False
+        
 
         if self.iter == self.max_iter -1:
             done = True
@@ -226,7 +294,7 @@ class RobotEnv(Env):
         else:
             self.stuck_count = 0
 
-        if self.stuck_count >= 500:
+        if self.stuck_count >= 750:
             stuck = True
         else:
             stuck = False
@@ -240,11 +308,22 @@ class RobotEnv(Env):
         dis = np.sqrt(np.trace(np.eye(3) - self.Rd.T @ R) + 0.5 * (x - self.xd).T @ (x - self.xd))
         dis = np.clip(dis,0,1)
         reward = -scale * dis
+        
         if dis < 0.2 and abs(x[2] - self.xd[2]) < 0.04:
             reward = scale2 * (0.04 - abs(x[2] - self.xd[2]))
+
+
         if dis < 0.1 and abs(x[2] - self.xd[2]) < 0.024:
             self.done_count += 1
-            reward = 2
+            reward = (self.max_iter - self.iter) * self.dt
+
+        fe = self.robot_state.get_ee_force_mine()
+        fe_norm = np.linalg.norm(fe)
+        trans_part1 = np.sqrt((x[0:2] - self.xd[0:2]).T @ (x[0:2] - self.xd[0:2]))
+
+        if trans_part1 > 0.0002 and fe_norm > 100:
+            reward -= 0.2
+            # print(fe_norm, reward)        
 
         return reward 
 

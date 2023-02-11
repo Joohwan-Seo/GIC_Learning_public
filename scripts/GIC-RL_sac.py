@@ -89,7 +89,7 @@ if __name__ == "__main__":
         version="normal",
         layer_size=32,
         replay_buffer_size=int(1E6),
-        obs_type = "pos",
+        obs_type = "pos_vel",
         algorithm_kwargs=dict(
             num_epochs=20000,
             num_eval_steps_per_epoch=5000,
@@ -110,6 +110,6 @@ if __name__ == "__main__":
             use_automatic_entropy_tuning=True,
         ),
     )
-    setup_logger('GIC_RL_nominal_expert_long_pos', variant=variant)
+    setup_logger('Expert_pos_bump', variant=variant)
     ptu.set_gpu_mode(True)  # optionally set the GPU (default=False)
     experiment(variant)
