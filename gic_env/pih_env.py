@@ -7,10 +7,12 @@ import time, csv, os
 
 from gym import utils
 
-import matplotlib.pyplot as plt
+
 from gic_env.utils.robot_state import RobotState
 from gic_env.utils.mujoco import set_state
 from gic_env.utils.base import Primitive, PrimitiveStatus
+
+# import matplotlib.pyplot as plt
 
 
 class RobotEnv(Env):
