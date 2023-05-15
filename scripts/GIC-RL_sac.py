@@ -23,27 +23,27 @@ def experiment(variant):
     qf1 = ConcatMlp(
         input_size=obs_dim + action_dim,
         output_size=1,
-        hidden_sizes=[M, M],
+        hidden_sizes=[M, M, M],
     )
     qf2 = ConcatMlp(
         input_size=obs_dim + action_dim,
         output_size=1,
-        hidden_sizes=[M, M],
+        hidden_sizes=[M, M, M],
     )
     target_qf1 = ConcatMlp(
         input_size=obs_dim + action_dim,
         output_size=1,
-        hidden_sizes=[M, M],
+        hidden_sizes=[M, M, M],
     )
     target_qf2 = ConcatMlp(
         input_size=obs_dim + action_dim,
         output_size=1,
-        hidden_sizes=[M, M],
+        hidden_sizes=[M, M, M],
     )
     policy = TanhGaussianPolicy(
         obs_dim=obs_dim,
         action_dim=action_dim,
-        hidden_sizes=[M, M],
+        hidden_sizes=[M, M, M],
     )
     eval_policy = MakeDeterministic(policy)
     eval_path_collector = MdpPathCollector(
@@ -87,8 +87,8 @@ if __name__ == "__main__":
     variant = dict(
         algorithm="SAC",
         version="normal",
-        layer_size=32,
-        replay_buffer_size=int(1E6),
+        layer_size=128,
+        replay_buffer_size=int(5E5),
         obs_type = "pos_vel",
         algorithm_kwargs=dict(
             num_epochs=20000,
