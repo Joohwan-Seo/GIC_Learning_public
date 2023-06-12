@@ -26,7 +26,8 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
             num_train_loops_per_epoch=1,
             min_num_steps_before_training=0,
             start_epoch=0, # negative epochs are offline, positive epochs are online
-            use_expert_policy=False,         
+            use_expert_policy=False,
+            batch_rl = False     
     ):
         super().__init__(
             trainer,
@@ -46,18 +47,23 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
         self.min_num_steps_before_training = min_num_steps_before_training
         self._start_epoch = start_epoch
         self.use_expert_policy = use_expert_policy
+        ############
+        ## JS ##
+        self.batch_rl = batch_rl
 
     def train(self):
+
         """Negative epochs are offline, positive epochs are online"""
         for self.epoch in gt.timed_for(
                 range(self._start_epoch, self.num_epochs),
                 save_itrs=True,
         ):
             self.offline_rl = self.epoch < 0
+            ##
+            self.offline_rl = self.batch_rl
             self._begin_epoch(self.epoch)
             self._train()
             self._end_epoch(self.epoch)
-
     def _train(self):
 
         if self.epoch == 0 and self.min_num_steps_before_training > 0:

@@ -42,6 +42,9 @@ class SACTrainer(TorchTrainer, LossFunction):
 
             use_automatic_entropy_tuning=True,
             target_entropy=None,
+            ## JS ##
+            use_pretrained_policy = False,
+            ########
     ):
         super().__init__()
         self.env = env
@@ -52,6 +55,10 @@ class SACTrainer(TorchTrainer, LossFunction):
         self.target_qf2 = target_qf2
         self.soft_target_tau = soft_target_tau
         self.target_update_period = target_update_period
+
+        ## JS ##
+        self.use_pretrained_policy = use_pretrained_policy
+        ########
 
         self.use_automatic_entropy_tuning = use_automatic_entropy_tuning
         if self.use_automatic_entropy_tuning:
@@ -91,8 +98,18 @@ class SACTrainer(TorchTrainer, LossFunction):
         self._n_train_steps_total = 0
         self._need_to_update_eval_statistics = True
         self.eval_statistics = OrderedDict()
+        self._current_epoch = 0
 
+
+        if self.use_pretrained_policy:
+            self._policy_training_start_epoch = -1
+            print('Using pretrained policy')
+        else:
+            self._policy_training_start_epoch = -1
+
+    
     def train_from_torch(self, batch):
+        self._current_epoch += 1
         gt.blank_stamp()
         losses, stats = self.compute_loss(
             batch,
@@ -106,9 +123,14 @@ class SACTrainer(TorchTrainer, LossFunction):
             losses.alpha_loss.backward()
             self.alpha_optimizer.step()
 
-        self.policy_optimizer.zero_grad()
-        losses.policy_loss.backward()
-        self.policy_optimizer.step()
+        if self._current_epoch > self._policy_training_start_epoch:
+            self.policy_optimizer.zero_grad()
+            losses.policy_loss.backward()
+            self.policy_optimizer.step()
+
+        # self.policy_optimizer.zero_grad()
+        # losses.policy_loss.backward()
+        # self.policy_optimizer.step()
 
         self.qf1_optimizer.zero_grad()
         losses.qf1_loss.backward()
@@ -192,10 +214,13 @@ class SACTrainer(TorchTrainer, LossFunction):
         eval_statistics = OrderedDict()
         if not skip_statistics:
             eval_statistics['QF1 Loss'] = np.mean(ptu.get_numpy(qf1_loss))
+            self._qf1_loss = np.mean(ptu.get_numpy(qf1_loss))
             eval_statistics['QF2 Loss'] = np.mean(ptu.get_numpy(qf2_loss))
+            self._qf2_loss = np.mean(ptu.get_numpy(qf2_loss))
             eval_statistics['Policy Loss'] = np.mean(ptu.get_numpy(
                 policy_loss
             ))
+            self._policy_loss = np.mean(ptu.get_numpy(policy_loss))
             eval_statistics.update(create_stats_ordered_dict(
                 'Q1 Predictions',
                 ptu.get_numpy(q1_pred),

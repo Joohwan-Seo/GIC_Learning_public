@@ -26,6 +26,8 @@ class RobotState:
 
         if self.robot_name == 'ur5e':
             self.N = 6
+        elif self.robot_name == 'fanuc':
+            self.N = 6
         else:
             self.N = 7
         self.ee_site_idx = functions.mj_name2id(
@@ -35,19 +37,29 @@ class RobotState:
         dt = sim.model.opt.timestep
         # print('dt:', dt)
         fs = 1 / dt
-        cutoff = 30
+        cutoff = 50 ## Default value is 50
         self.fe = np.zeros(6)
         self.lp_filter = ButterLowPass(cutoff, fs, order=5)
 
         self.load_dll()
 
     def load_dll(self):
+        dir = "/home/joohwan/deeprl/research/GIC_CQL/"
         if self.robot_name == 'ur5e':
-            self.c = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/funCori_UR5e_sq.so")
-            self.g = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/funGrav_UR5e_sq.so")
-            self.m = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/funMass_UR5e_sq.so")
-            self.g_st = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/g_st.so")
-            self.Jb = cdll.LoadLibrary("./gic_env/dynamic_models/UR5e/Jb.so")
+            self.c = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/UR5e/funCori_UR5e_sq.so")
+            self.g = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/UR5e/funGrav_UR5e_sq.so")
+            self.m = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/UR5e/funMass_UR5e_sq.so")
+            self.g_st = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/UR5e/g_st.so")
+            self.Jb = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/UR5e/Jb.so")
+            self.Je = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/UR5e/Je.so")
+        elif self.robot_name == 'fanuc':
+            self.c = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/fanuc/funCori_Fanuc.so")
+            self.g = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/fanuc/funGrav_Fanuc.so")
+            self.m = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/fanuc/funMass_Fanuc.so")
+            self.g_st = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/fanuc/g_st.so")
+            self.Jb = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/fanuc/Jb.so")
+            self.Jb_dot = cdll.LoadLibrary(dir + "./gic_env/dynamic_models/fanuc/Jb_dot_fun.so")
+            self.Je = cdll.LoadLibrary("./gic_env/dynamic_models/fanuc/Je.so")
         else:
             print('!!!WARNING!!!  That robot type is not implemented yet! (and maybe never ever)')
             quit()
@@ -93,16 +105,8 @@ class RobotState:
         :rtype: tuple(np.array(3), np.array(4))
 
         """
-        # print('in_robot_state, xpos:',p)
         p = self.data.site_xpos[self.ee_site_idx].copy()    # pos
         R = self.data.site_xmat[self.ee_site_idx].copy()    # rotation matrix
-        # R = R.reshape((3,3))
-
-        # print('current ee pose:',p)
-        # print('current R\n:', R.reshape((3,3)))
-        
-
-        # print('in_robot_state, xpos:',p)
 
         q = np.zeros(4)
         functions.mju_mat2Quat(q, R)
@@ -155,9 +159,21 @@ class RobotState:
 
         return g_st[0:3,3], g_st[0:3,0:3]
     
-    def get_ee_force_mine(self):
+    def get_ee_force_mine(self, frame_quat = None):
         fe = get_contact_force_mine(self.model, self.data, "peg")
-        return fe
+        if frame_quat is None:
+            return fe
+        
+        p, q = self.get_pose()
+        qf0 = np.zeros(4)
+        functions.mju_negQuat(qf0, frame_quat)
+        qfe = np.zeros(4)
+        functions.mju_mulQuat(qfe, qf0, q)  # qfe = qf0 * q0e
+
+        ff = transform_spatial(fe, qfe)
+        # desired = (np.zeros((3,)), np.eye(3))
+        # ff = self.transform_adj(fe, desired)
+        return ff
 
     def get_ee_force(self, frame_quat=None):
         """Get current force torque acting on the end-effector,
@@ -180,10 +196,23 @@ class RobotState:
         qfe = np.zeros(4)
         functions.mju_mulQuat(qfe, qf0, q)  # qfe = qf0 * q0e
 
+        # print(qfe)
+        desired = (np.zeros(3,), np.eye(3))
         # transform to target frame
         ff = transform_spatial(self.fe, qfe)
+        ff = self.transform_rot(self.fe, desired)
+        # ff = self.transform_adj(self.fe, desired)
         # lowpass filter
         return ff
+    
+    def transform_rot(self, fe, desired):
+        pe, Re = self.get_pose_mine()
+        ps, Rs = desired
+
+        R12 = Rs.T @ Re
+        Mat = np.block([[R12, np.zeros((3, 3))], [np.zeros((3, 3)), R12]])
+
+        return Mat.dot(fe)
 
     def get_jacobian(self):
         """Get 6x7 geometric jacobian matrix."""
@@ -198,10 +227,43 @@ class RobotState:
         jac[:3] = jac_pos.reshape((3, self.N))
         # only return first 7 dofs
         return jac[:, :self.N].copy()
+    
+    def get_jacobian_mine(self):
+        pyarr = [0.]* self.N**2
+        q = self.get_joint_pose()
+
+        J_mat = (c_double * len(pyarr))(*pyarr)
+        self.Je.Je(c_double(q[0]),c_double(q[1]),c_double(q[2]),
+                    c_double(q[3]),c_double(q[4]),c_double(q[5]), J_mat)
+
+        Je = np.zeros((self.N * 6))
+        for i in range(self.N * 6):
+            Je[i] = float(J_mat[i])
+
+        return Je.reshape((6, self.N)).T
+    
+    def get_body_jacobian_dot(self):
+        pyarr = pyarr = [0.]* self.N**2
+        q = self.get_joint_pose()
+        dq = self.get_joint_velocity()
+
+        J_dot_mat = (c_double * len(pyarr))(*pyarr)
+        self.Jb_dot.Jb_dot_fun(c_double(q[0]),c_double(q[1]),c_double(q[2]),
+                    c_double(q[3]),c_double(q[4]),c_double(q[5]), 
+                    c_double(dq[0]),c_double(dq[1]),c_double(dq[2]),
+                    c_double(dq[3]),c_double(dq[4]),c_double(dq[5]), 
+                    J_dot_mat)
+
+        Jb_dot = np.zeros((self.N * 6))
+        for i in range(self.N * 6):
+            Jb_dot[i] = float(J_dot_mat[i])
+
+        return Jb_dot.reshape((6, self.N)).T   
 
     def get_body_jacobian(self):
         pyarr = [0.]* self.N**2
         q = self.get_joint_pose()
+        
 
         J_mat = (c_double * len(pyarr))(*pyarr)
         self.Jb.Jb(c_double(q[0]),c_double(q[1]),c_double(q[2]),
@@ -216,10 +278,17 @@ class RobotState:
     def get_body_ee_velocity(self):
         Jb = self.get_body_jacobian()
         dq = self.get_joint_velocity()
-
         Vb = Jb@dq.reshape((-1,1))
 
         return Vb
+    
+    def get_spatial_ee_velocity(self):
+        Js = self.get_jacobian()
+        dq = self.get_joint_velocity()
+
+        Vs = Js@dq.reshape((-1,1))
+
+        return Vs
 
     def get_dynamic_matrices(self):
         pyarr = [0.]* self.N**2
@@ -232,15 +301,27 @@ class RobotState:
         M_mat = (c_double * len(pyarr))(*pyarr)
         G_vec = (c_double * len(pyarr_g))(*pyarr_g)
 
-        self.c.funCori_UR5e_sq(c_double(q[0]),c_double(q[1]),c_double(q[2]),
-                              c_double(q[3]),c_double(q[4]),c_double(q[5]), 
-                              c_double(dq[0]),c_double(dq[1]),c_double(dq[2]),
-                              c_double(dq[3]),c_double(dq[4]),c_double(dq[5]), 
-                              C_mat)
-        self.m.funMass_UR5e_sq(c_double(q[0]),c_double(q[1]),c_double(q[2]),
-                                c_double(q[3]),c_double(q[4]),c_double(q[5]), M_mat)
-        self.g.funGrav_UR5e_sq(c_double(q[0]),c_double(q[1]),c_double(q[2]),
-                                c_double(q[3]),c_double(q[4]),c_double(q[5]), G_vec)
+        if self.robot_name == 'ur5e':
+            self.c.funCori_UR5e_sq(c_double(q[0]),c_double(q[1]),c_double(q[2]),
+                                c_double(q[3]),c_double(q[4]),c_double(q[5]), 
+                                c_double(dq[0]),c_double(dq[1]),c_double(dq[2]),
+                                c_double(dq[3]),c_double(dq[4]),c_double(dq[5]), 
+                                C_mat)
+            self.m.funMass_UR5e_sq(c_double(q[0]),c_double(q[1]),c_double(q[2]),
+                                    c_double(q[3]),c_double(q[4]),c_double(q[5]), M_mat)
+            self.g.funGrav_UR5e_sq(c_double(q[0]),c_double(q[1]),c_double(q[2]),
+                                    c_double(q[3]),c_double(q[4]),c_double(q[5]), G_vec)
+        
+        elif self.robot_name == 'fanuc':
+            self.c.funCori_Fanuc(c_double(q[0]),c_double(q[1]),c_double(q[2]),
+                                 c_double(q[3]),c_double(q[4]),c_double(q[5]), 
+                                 c_double(dq[0]),c_double(dq[1]),c_double(dq[2]),
+                                 c_double(dq[3]),c_double(dq[4]),c_double(dq[5]), 
+                                C_mat)
+            self.m.funMass_Fanuc(c_double(q[0]),c_double(q[1]),c_double(q[2]),
+                                 c_double(q[3]),c_double(q[4]),c_double(q[5]), M_mat)
+            self.g.funGrav_Fanuc(c_double(q[0]),c_double(q[1]),c_double(q[2]),
+                                 c_double(q[3]),c_double(q[4]),c_double(q[5]), G_vec)
 
         C = np.zeros((self.N**2))
         M = np.zeros((self.N**2))

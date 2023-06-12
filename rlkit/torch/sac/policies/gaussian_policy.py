@@ -105,7 +105,7 @@ class TanhGaussianPolicy(Mlp, TorchStochasticPolicy):
             self.log_std = np.log(std)
             assert LOG_SIG_MIN <= self.log_std <= LOG_SIG_MAX
 
-    def forward(self, obs):
+    def forward(self, obs, reparameterize = False):
         h = obs
         for i, fc in enumerate(self.fcs):
             h = self.hidden_activation(fc(h))

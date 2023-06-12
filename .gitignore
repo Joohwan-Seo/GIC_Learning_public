@@ -1,0 +1,5 @@
+data/
+dataset/
+!data/Fanuc_success
+*.pyo
+*.pyc

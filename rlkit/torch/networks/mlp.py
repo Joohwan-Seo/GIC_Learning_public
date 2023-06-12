@@ -10,7 +10,6 @@ from rlkit.torch.data_management.normalizer import TorchFixedNormalizer
 from rlkit.torch.networks import LayerNorm
 from rlkit.torch.pytorch_util import activation_from_string
 
-
 class Mlp(PyTorchModule):
     def __init__(
             self,

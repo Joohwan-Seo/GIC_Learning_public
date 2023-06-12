@@ -99,8 +99,8 @@ class Logger(object):
         self._tabular_header_written = set()
 
         self._snapshot_dir = None
-        self._snapshot_mode = 'all'
-        self._snapshot_gap = 1
+        self._snapshot_mode = 'gap'
+        self._snapshot_gap = 5
 
         self._log_tabular_only = False
         self._header_printed = False
