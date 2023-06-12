@@ -1,0 +1,17 @@
+<mujocoinclude>
+    <actuator>
+        <!-- For the Backup -->
+        <motor ctrllimited="true" ctrlrange="-150.0 150.0" joint="link1" name="link1"/>
+        <motor ctrllimited="true" ctrlrange="-150.0 150.0" joint="link2" name="link2"/>
+        <motor ctrllimited="true" ctrlrange="-150.0 150.0" joint="link3" name="link3"/>
+        <motor ctrllimited="true" ctrlrange="-150.0 150.0" joint="link4" name="link4"/>
+        <motor ctrllimited="true" ctrlrange="-150.0 150.0" joint="link5" name="link5"/>
+        <motor ctrllimited="true" ctrlrange="-28.0 28.0" joint="link6" name="link6"/>
+        <!-- <position ctrllimited="true" ctrlrange="-3.1416 3.1416" joint="link1" kp="100" name="link1"/>
+        <position ctrllimited="true" ctrlrange="-3.1416 3.1416" joint="link2" kp="100" name="link2"/>
+        <position ctrllimited="true" ctrlrange="-3.1416 3.1416" joint="link3" kp="100" name="link3"/>
+        <position ctrllimited="true" ctrlrange="-3.1416 3.1416" joint="link4" kp="100" name="link4"/>
+        <position ctrllimited="true" ctrlrange="-3.1416 3.1416" joint="link5" kp="100" name="link5"/>
+        <position ctrllimited="true" ctrlrange="-3.1416 3.1416" joint="link6" kp="100" name="link6"/> -->
+    </actuator>
+</mujocoinclude>

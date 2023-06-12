@@ -1,0 +1,16 @@
+<mujocoinclude>
+    <asset>
+        <mesh file="../fanuc_sim/meshes/Base.STL" name="base" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Link1.STL" name="link1" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Link2.STL" name="link2" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Link3.STL" name="link3" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Link4.STL" name="link4" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Link5.STL" name="link5" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Link6.STL" name="link6" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Sensor.STL" name="sensor" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Palm.STL" name="palm" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Finger1.STL" name="finger1" scale="0.001 0.001 0.001"></mesh>
+        <mesh file="../fanuc_sim/meshes/Finger2.STL" name="finger2" scale="0.001 0.001 0.001"></mesh>
+    </asset>
+    <!-- FANUC ASSET What about armature? -->
+</mujocoinclude>
