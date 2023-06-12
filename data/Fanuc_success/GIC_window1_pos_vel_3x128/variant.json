@@ -1,0 +1,26 @@
+{
+  "algorithm": "SAC",
+  "algorithm_kwargs": {
+    "batch_size": 50000,
+    "max_path_length": 7500,
+    "min_num_steps_before_training": 200000,
+    "num_epochs": 20000,
+    "num_eval_steps_per_epoch": 7500,
+    "num_expl_steps_per_train_loop": 7500,
+    "num_trains_per_train_loop": 100,
+    "use_expert_policy": true
+  },
+  "layer_size": 128,
+  "obs_type": "pos_vel",
+  "replay_buffer_size": 500000,
+  "trainer_kwargs": {
+    "discount": 0.99,
+    "policy_lr": 0.0003,
+    "qf_lr": 0.0003,
+    "reward_scale": 1,
+    "soft_target_tau": 0.005,
+    "target_update_period": 10,
+    "use_automatic_entropy_tuning": true
+  },
+  "version": "normal"
+}
