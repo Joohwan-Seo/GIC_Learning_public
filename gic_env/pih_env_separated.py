@@ -718,6 +718,7 @@ class RobotEnvSeparated(Env):
         return tau_cmd.reshape((-1,))
     
     def convert_gains(self,action):
+
         if self.act_type == 'default':
             axy = action[0:2]
             az = action[2]
@@ -727,10 +728,12 @@ class RobotEnvSeparated(Env):
             axy = np.array([action[0],action[0]])
             az = action[1]
             ao = np.array([1.0,1.0,1.0])
+
         elif self.act_type == 'minimal2':
             axy = np.array([action[0], action[1]])
             az = action[2]
             ao = np.array([1.0,1.0,1.0])
+
         elif self.act_type == 'minimal2-1':
             a0 = (action[0] + action[1])/2
             a1 = (action[0] - action[1])/2
@@ -738,6 +741,7 @@ class RobotEnvSeparated(Env):
             axy = np.clip(axy,-1,1)
             az = action[2]
             ao = np.array([1.0,1.0,1.0])
+            
         elif self.act_type == 'minimal3':
             axy = np.array([action[0], action[1]])
             az = action[2]

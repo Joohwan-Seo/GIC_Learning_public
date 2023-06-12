@@ -1,5 +1,7 @@
 from gic_env.pih_env import RobotEnv
 from gic_env.pih_env_benchmark import RobotEnvBenchmark
+from gic_env.pih_env_separated import RobotEnvSeparated
+from gic_env.pih_env_separated_benchmark import RobotEnvSeparatedBenchmark
 import numpy as np
 
 from rlkit.envs.wrappers import NormalizedBoxEnv
@@ -11,16 +13,28 @@ def collect_traj(variant):
     max_path_length = variant['max_path_length']
     max_episode_call = variant['max_episode_call']
     window_size = variant['window_size']
+    use_ext_force = variant['use_ext_force']
+    action_type = variant['action_type']
     ECGIC = variant['ECGIC']
 
 
     if variant['env_name'] == 'default':
         print('========== Default ENV ===========')
-        env = NormalizedBoxEnv(RobotEnv(show_viewer = False, obs_type = obs_type, window_size = window_size, ECGIC = ECGIC))
+        env = NormalizedBoxEnv(RobotEnvSeparated(show_viewer = False, 
+                                                 obs_type = obs_type, 
+                                                 window_size = window_size, 
+                                                 ECGIC = ECGIC, 
+                                                 use_ext_force = use_ext_force,
+                                                 act_type = action_type,))
         
     elif variant['env_name'] == 'benchmark':
         print('========== Benchmark ENV ===========')
-        env = NormalizedBoxEnv(RobotEnvBenchmark(show_viewer = False, obs_type = obs_type, window_size = window_size))
+        env = NormalizedBoxEnv(RobotEnvSeparatedBenchmark(show_viewer = False, 
+                                                          obs_type = obs_type, 
+                                                          window_size = window_size,
+                                                          ECGIC = ECGIC, 
+                                                          use_ext_force = use_ext_force,
+                                                          act_type = action_type,))
 
     else:
         print('Error: Environment NOT SELECTED')
@@ -96,10 +110,10 @@ def collect_traj(variant):
     
 
     dataset = dict(
-        x = list_x,
-        R = list_R,
+        # x = list_x,
+        # R = list_R,
         eg = list_eg,
-        ev = list_ev,
+        # ev = list_ev,
         done = list_done,
         actions = list_action,
     )
@@ -117,17 +131,21 @@ def collect_traj(variant):
 if __name__ == "__main__":
     variant = dict(
         obs_type = 'pos',
-        dataset_size = int(2e6),
-        max_path_length = 7500,
+        dataset_size = int(1e6),
+        max_path_length = 4000,
         max_episode_call = 10000,
         env_name = 'default',  #default vs benchmark
         window_size = 1,
         ECGIC = False,
+        use_ext_force = False,
+        residual = False,
+        action_type = 'default',
+        env_type = 'pih_env_separated',
     )
 
     print('Current Environment is', variant['env_name'])
     dataset = collect_traj(variant)
 
-    file = open("./dataset/dataset_GIC_potential_learning.pkl","wb")
+    file = open("./dataset/dataset_GIC_BC_pos.pkl","wb")
     pickle.dump(dataset, file)
     file.close()

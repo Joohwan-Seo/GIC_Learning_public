@@ -188,13 +188,13 @@ if __name__ == "__main__":
             ############################
         ),
         ECGIC = False,
-        benchmark = True,
+        benchmark = False,
         seed = int(1),
         window_size = int(1),
         use_ext_force = False,
         residual = False,
         action_type = 'minimal',
-        env_type = 'pih_env_separated_benchmark',
+        env_type = 'pih_env_separated',
         reward_version = None
     )
 
