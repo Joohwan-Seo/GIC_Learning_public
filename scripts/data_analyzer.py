@@ -147,6 +147,15 @@ if __name__ == "__main__":
     log_pos_minimal2_noforce_sepa_reward2 = 'data/Fanuc-Separated-GIC-ws-1-3x128-pos-miminal2-GIC-no-force-force-penalty/Fanuc_Separated_GIC_ws_1_3x128_pos_miminal2_GIC_no_force_force_penalty_2023_06_08_19_54_16_0000--s-0/'
     log_pos_minimal3_noforce_sepa_reward3 = 'data/Fanuc-Separated-GIC-ws-1-3x128-pos-miminal3-GIC-no-force-force-penalty/Fanuc_Separated_GIC_ws_1_3x128_pos_miminal3_GIC_no_force_force_penalty_2023_06_09_20_39_27_0000--s-0/'
 
+    log_pos_minimal2_1_noforce_sepa = 'data/Fanuc-Separated-GIC-ws-1-3x128-pos-miminal2-1-no-force/Fanuc_Separated_GIC_ws_1_3x128_pos_miminal2-1_no_force_2023_06_12_14_29_31_0000--s-0/'
+
+    log_pos_default_noforce_sepa_reward2 = 'data/Fanuc-Separated-GIC-ws-1-3x128-pos-no-force-force-penalty/Fanuc_Separated_GIC_ws_1_3x128_pos_no_force_force_penalty_2023_06_13_10_17_08_0000--s-0/'
+
+    log_pos_default_seed2 = 'data/Fanuc-Separated-GIC-ws-1-3x128-pos-no-force-force-penalty-2/Fanuc_Separated_GIC_ws_1_3x128_pos_no_force_force_penalty_2_2023_06_18_12_04_01_0000--s-0/'
+
+    log_pos_minimal_seed2 = 'data/Fanuc-Separated-GIC-ws-1-3x128-pos-no-force-force-penalty-minimal-2/Fanuc_Separated_GIC_ws_1_3x128_pos_no_force_force_penalty_minimal_2_2023_06_21_21_04_36_0000--s-0/'
+    log_bm_pos_minimal_seed2 = 'data/Fanuc-Separated-CIC-ws-1-3x128-pos-no-force-force-penalty-minimal-2/Fanuc_Separated_CIC_ws_1_3x128_pos_no_force_force_penalty_minimal_2_2023_06_23_15_00_48_0000--s-0/'
+
     log_td3_2 = 'data/TD3-GIC-default/TD3_GIC_default_2023_05_30_17_39_41_0000--s-0/'
     log_td3_1 = 'data/TD3-GIC-default/TD3_GIC_default_2023_05_30_10_08_04_0000--s-0/'
     log_td3_residual = 'data/TD3-GIC-residual-default/TD3_GIC_residual_default_2023_06_01_11_20_19_0000--s-0/'
@@ -164,9 +173,12 @@ if __name__ == "__main__":
     ### On the separated environment
     log_success3 = 'data/Fanuc-Separated-GIC-ws-1-3x128-pos-miminal-GIC-no-force/Fanuc_Separated_GIC_ws_1_3x128_pos_miminal_GIC_no_force_2023_06_07_19_48_52_0000--s-0/' #itr 230
 
+    log_success_default = 'data/Fanuc-Separated-GIC-ws-1-3x128-pos-no-force-force-penalty/Fanuc_Separated_GIC_ws_1_3x128_pos_no_force_force_penalty_2023_06_13_10_17_08_0000--s-0/' #itr 170
+
     ###
     log_bm_pos_minimal_noforce = 'data/Fanuc-Separated-CIC-ws-1-3x128-pos-miminal-no-force/Fanuc_Separated_CIC_ws_1_3x128_pos_miminal_no_force_2023_06_11_11_37_37_0000--s-0/'
+    log_bm_pos_noforce = 'data/Fanuc-Separated-CIC-ws-1-3x128-pos-no-force-force-penalty/Fanuc_Separated_CIC_ws_1_3x128_pos_no_force_force_penalty_2023_06_13_21_16_09_0000--s-0/' #itr 130
 
-    main(log_bm_pos_minimal_noforce + 'progress.csv', window)
+    main(log_bm_pos_minimal_seed2 + 'progress.csv', window)
 
-    # main_multi(log_pos_minimal_noforce_sepa + 'progress.csv', log_pos_minimal3_noforce_sepa_reward3 + 'progress.csv', window)
+    # main_multi(log_pos_default_seed2 + 'progress.csv', log_pos_default_noforce_sepa_reward2 + 'progress.csv', window)

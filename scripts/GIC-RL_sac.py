@@ -165,7 +165,7 @@ if __name__ == "__main__":
         replay_buffer_size=int(1E6),
         obs_type = "pos",
         algorithm_kwargs=dict(
-            num_epochs = 10000,
+            num_epochs = 2000,
             num_eval_steps_per_epoch=4000,
             num_trains_per_train_loop= 500,
             num_expl_steps_per_train_loop=4000,
@@ -179,8 +179,8 @@ if __name__ == "__main__":
             discount=0.99,
             soft_target_tau=5e-3,
             target_update_period=10,
-            policy_lr=5E-5, # worked well with 1e-4
-            qf_lr=5E-5, # worked well with 1e-4
+            policy_lr=3e-4, # worked well with 1e-4
+            qf_lr=3e-4, # worked well with 1e-4
             reward_scale=1,
             use_automatic_entropy_tuning=True,
             ######## JS modified #######
@@ -188,14 +188,14 @@ if __name__ == "__main__":
             ############################
         ),
         ECGIC = False,
-        benchmark = False,
-        seed = int(1),
+        benchmark = True,
+        seed = int(2),
         window_size = int(1),
         use_ext_force = False,
         residual = False,
         action_type = 'minimal',
-        env_type = 'pih_env_separated',
-        reward_version = None
+        env_type = 'benchmark', # 'default' or 'benchmark'
+        reward_version = 'force_penalty' # None or 'force_penalty'
     )
 
     print('============================================')
@@ -207,6 +207,6 @@ if __name__ == "__main__":
 
 
     set_seed(variant['seed'])
-    setup_logger('Fanuc_Separated_CIC_ws_1_3x128_pos_miminal_no_force', variant=variant, snapshot_mode = "gap", snapshot_gap = 5)
+    setup_logger('Fanuc_Separated_CIC_ws_1_3x128_pos_no_force_force_penalty_minimal_2', variant=variant, snapshot_mode = "gap", snapshot_gap = 5)
     ptu.set_gpu_mode(True)  # optionally set the GPU (default=False)
     experiment(variant)

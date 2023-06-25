@@ -16,7 +16,8 @@ from gic_env.utils.base import Primitive, PrimitiveStatus
 
 class RobotEnvSeparated(Env):
     def __init__(self, robot_name = 'fanuc', env_type = 'square_PIH', max_time = 15, show_viewer = False, 
-                 obs_type = 'pos', hole_ori = 'default', testing = False, reward_version = None, window_size = 1, ECGIC = False, TCGIC = False, use_ext_force = True, act_type = 'default'):
+                 obs_type = 'pos', hole_ori = 'default', testing = False, reward_version = None, window_size = 1, 
+                 ECGIC = False, TCGIC = False, use_ext_force = True, act_type = 'default', mixed_obs = False):
         self.robot_name = robot_name
         self.env_type = env_type
         self.hole_ori = hole_ori
@@ -26,6 +27,11 @@ class RobotEnvSeparated(Env):
         self.window_size = window_size
         self.use_external_force = use_ext_force
         self.act_type = act_type
+
+        if mixed_obs:
+            self.obs_is_Cart = True
+        else:
+            self.obs_is_Cart = False
         print('===================')
         print('I AM IN DEFAULT ENV')
         print('===================')
@@ -151,6 +157,7 @@ class RobotEnvSeparated(Env):
             self.obs_memory = [np.zeros(self.num_obs)] * self.window_size
 
         self.Fe = np.zeros((6,1))
+        # self.viewer_setup()
         self.reset()
 
     def load_xml(self):
@@ -192,6 +199,15 @@ class RobotEnvSeparated(Env):
         else:
             self.viewer = None
 
+    def viewer_setup(self):
+        assert self.viewer is not None
+        self.viewer.cam.trackbodyid = -1
+        self.viewer.cam.distance = self.model.stat.extent * 0.7
+        self.viewer.cam.lookat[2] = 0.75
+        # self.viewer.cam.lookat[2] = -0.5
+        self.viewer.cam.lookat[2] = 0.15
+        self.viewer.cam.elevation = 0
+
     def reset(self):
         # print('resetting')
         self.init_stage = True
@@ -228,6 +244,9 @@ class RobotEnvSeparated(Env):
 
             self.xd = xd_ori.reshape((-1,1)) + Rd_ori @ np.array([rand_xy[0], rand_xy[1], -0.1]).reshape(-1,1)
             self.Rd = Rd_ori @ Rz @ Ry @ Rx
+
+            # self.xd = xd_ori.reshape((-1,1)) + Rd_ori @ np.array([0.0, -0.04, -0.1]).reshape(-1,1)
+            # self.Rd = Rd_ori
 
             self.xd = self.xd.reshape((-1,))
 
@@ -540,6 +559,18 @@ class RobotEnvSeparated(Env):
             obs = np.asarray(self.obs_memory).reshape((-1,))
             # flat obs
 
+        if self.obs_is_Cart:
+            x, R = self.robot_state.get_pose_mine()
+            ep = (x - self.xd).reshape((-1,1))
+
+            Rd1 = self.Rd[:,0]; Rd2 = self.Rd[:,1]; Rd3 = self.Rd[:,2]
+            R1 = R[:,0]; R2 = R[:,1]; R3 = R[:,2]
+
+            eR = -((np.cross(R1,Rd1) + np.cross(R2,Rd2) + np.cross(R3,Rd3))).reshape((-1,1))
+
+            eg = np.vstack((ep,eR))
+            obs = eg.reshape((-1,))
+
         return obs
 
     
@@ -737,7 +768,7 @@ class RobotEnvSeparated(Env):
         elif self.act_type == 'minimal2-1':
             a0 = (action[0] + action[1])/2
             a1 = (action[0] - action[1])/2
-            axy = np.array([a0[0], a1[1]])
+            axy = np.array([a0, a1])
             axy = np.clip(axy,-1,1)
             az = action[2]
             ao = np.array([1.0,1.0,1.0])

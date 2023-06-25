@@ -142,7 +142,7 @@ if __name__ == "__main__":
     parser.add_argument('--use_ext_force', type =bool, default = False)
     parser.add_argument('--BC', type=str, default = None)
     parser.add_argument('--residual', type=bool, default = False)
-    parser.add_argument('--action_type', type = str, default = 'minimal')
+    parser.add_argument('--action_type', type = str, default = 'default')
     args = parser.parse_args()
 
     if args.ECGIC:

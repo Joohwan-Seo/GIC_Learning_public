@@ -1,0 +1,36 @@
+{
+  "ECGIC": false,
+  "action_type": "minimal",
+  "algorithm": "SAC",
+  "algorithm_kwargs": {
+    "batch_size": 1024,
+    "max_path_length": 4000,
+    "min_num_steps_before_training": 200000,
+    "num_epochs": 2000,
+    "num_eval_steps_per_epoch": 4000,
+    "num_expl_steps_per_train_loop": 4000,
+    "num_trains_per_train_loop": 500,
+    "use_expert_policy": true
+  },
+  "benchmark": false,
+  "env_type": "default",
+  "layer_size": 128,
+  "obs_type": "pos",
+  "replay_buffer_size": 1000000,
+  "residual": false,
+  "reward_version": "force_penalty",
+  "seed": 2,
+  "trainer_kwargs": {
+    "discount": 0.99,
+    "policy_lr": 0.0003,
+    "qf_lr": 0.0003,
+    "reward_scale": 1,
+    "soft_target_tau": 0.005,
+    "target_update_period": 10,
+    "use_automatic_entropy_tuning": true,
+    "use_pretrained_policy": false
+  },
+  "use_ext_force": false,
+  "version": "normal",
+  "window_size": 1
+}
