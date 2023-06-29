@@ -11,7 +11,7 @@ https://github.com/Joohwan-Seo/Geometric-Impedance-Control-Public
 ## Python path work should be done before running this code
 ```
 export PYTHONPATH=/your_directory_to_the_GIC_RL_folder:$PYTHONPATH
-'''
+'''\
 
 example
 
