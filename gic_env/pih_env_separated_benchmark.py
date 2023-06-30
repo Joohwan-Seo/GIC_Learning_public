@@ -32,9 +32,10 @@ class RobotEnvSeparatedBenchmark(Env):
             self.obs_is_GCEV = True
         else:
             self.obs_is_GCEV = False
-        print('===================')
-        print('I AM IN BENCHMARK ENV')
-        print('===================')
+
+        print('=================================')
+        print('USING CARTESIAN IMPEDANCE CONTROL')
+        print('=================================')
 
 
         #NOTE(JS) The determinant of the desired rotation matrix should be always 1.
@@ -80,10 +81,6 @@ class RobotEnvSeparatedBenchmark(Env):
                                 [1, 0, 0],
                                 [0, 0, -1]])
             self.Rd = Rt @ self.Rd
-        # self.xd = np.array([0.60, 0.012, 0.250])
-        # self.Rd = np.array([[0, 0, 1],
-        #                     [0, 1, 0],
-        #                     [-1, 0, 0]])
 
         self.ECGIC = ECGIC #Exact Compensation GIC
         self.TCGIC = TCGIC #Total Compensation GIC, fixed-mass GIC
@@ -99,36 +96,18 @@ class RobotEnvSeparatedBenchmark(Env):
 
         self.dt = 0.002
         self.max_iter = int(max_time/self.dt)
-        self.dummy = 'dummy_change'
-
-        self.logging = False
-        self.csv_name = 'square_PIH_4'
 
         self.time_step = 0
 
         self.kt = 50
         self.ko = 10
 
-        self.iter = 0
-
-        # print('I am here')        
+        self.iter = 0     
 
         if self.obs_type == 'pos_vel':
             self.num_obs = self.robot_state.N * 2
         elif self.obs_type == 'pos':
             self.num_obs = self.robot_state.N
-        elif self.obs_type == 'pos_vel_force':
-            self.num_obs = self.robot_state.N *2 + 6
-        elif self.obs_type == 'pos_force':
-            self.num_obs = self.robot_state.N + 6
-        elif self.obs_type == 'feature':
-            self.num_obs = 5 # distance, rot, trans, z_part, abs(dq)
-        elif self.obs_type == 'pos_feature':
-            self.num_obs = self.robot_state.N + 2
-        elif self.obs_type == 'pos_feature2':
-            self.num_obs = self.robot_state.N + 2
-        elif self.obs_type == 'pos_feature3':
-            self.num_obs = self.robot_state.N + 2
 
         if self.robot_name =='ur5e':
             self.num_act = 6
@@ -137,17 +116,9 @@ class RobotEnvSeparatedBenchmark(Env):
 
         if self.act_type == 'minimal':
             self.num_act = 2
-        elif self.act_type == 'minimal2':
-            self.num_act = 3
-        elif self.act_type == 'minimal2-1':
-            self.num_act = 3
-        elif self.act_type == 'minimal3':
-            self.num_act = 4
 
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_obs*self.window_size,))
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(self.num_act,))
-
-        utils.EzPickle.__init__(self)
 
         self.prev_x = np.zeros((3,))
         self.stuck_count = 0
@@ -161,9 +132,8 @@ class RobotEnvSeparatedBenchmark(Env):
         self.reset()
 
     def load_xml(self):
-        dir = "/home/joohwan/deeprl/research/GIC_RL/"
+        dir = "/home/joohwan/deeprl/research/GIC_Learning_public/"
         if self.robot_name == 'ur5e':
-            # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/sliding_test.xml"
             if self.hole_ori == 'default':
                 model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e.xml"
             elif self.hole_ori == 'case1':
@@ -187,10 +157,7 @@ class RobotEnvSeparatedBenchmark(Env):
                 model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc_case3.xml"
 
         elif self.robot_name == 'panda':
-            # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/sliding.xml"
-            # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/square_pih.xml"
-            # model_path = "mujoco_models/pih/square_pih.xml"
-            NotImplementedError
+            raise NotImplementedError
 
         self.model = mujoco_py.load_model_from_path(model_path)
         self.sim = mujoco_py.MjSim(self.model)
@@ -209,7 +176,6 @@ class RobotEnvSeparatedBenchmark(Env):
         self.viewer.cam.elevation = 0
 
     def reset(self):
-        # print('resetting')
         self.init_stage = True
         _ = self.initial_sample()
         obs = self._get_obs()
@@ -244,9 +210,6 @@ class RobotEnvSeparatedBenchmark(Env):
 
             self.xd = xd_ori.reshape((-1,1)) + Rd_ori @ np.array([rand_xy[0], rand_xy[1], -0.1]).reshape(-1,1)
             self.Rd = Rd_ori @ Rz @ Ry @ Rx
-
-            # self.xd = xd_ori.reshape((-1,1)) + Rd_ori @ np.array([0.0, -0.04, -0.1]).reshape(-1,1)
-            # self.Rd = Rd_ori
 
             self.xd = self.xd.reshape((-1,))
 
@@ -306,16 +269,15 @@ class RobotEnvSeparatedBenchmark(Env):
 
         elif self.robot_name == 'fanuc':
             if self.hole_ori == 'default':
-                q0_ = np.array([0.0, 0.4, 0.0, 0.0, -np.pi/2 + 0.4, 0.0]) ## Bakje
-                # q0_ = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+                q0_ = np.array([0.0, 0.4, 0.0, 0.0, -np.pi/2 + 0.4, 0.0]) 
             elif self.hole_ori == 'case1':
-                q0_ = np.array([-0.2, 0.5, 0.2, 0., -np.pi/2 + 0.5, 0.]) ## Bakje
+                q0_ = np.array([-0.2, 0.5, 0.2, 0., -np.pi/2 + 0.5, 0.]) 
 
             elif self.hole_ori == 'case2':
-                q0_ = np.array([0., 0.4, 0.2, 0., -np.pi/2 + 0.4, 0.]) ## Bakje
+                q0_ = np.array([0., 0.4, 0.2, 0., -np.pi/2 + 0.4, 0.]) 
 
             elif self.hole_ori == 'case3':
-                q0_ = np.array([0., 0.4, 0.2, 0., 0.4, 0.]) ## Bakje
+                q0_ = np.array([0., 0.4, 0.2, 0., 0.4, 0.])
 
             while True:
                 bias = np.array([-0.5, -0.5, -0.5, -0.5, -0.5, -0.5])
@@ -357,13 +319,8 @@ class RobotEnvSeparatedBenchmark(Env):
     def test(self):
         return_arr = []        
         for i in range(self.max_iter):
-            # print(i)
             action = self.get_expert_action()
-            # action = np.array([0,0,0,0,0,0])
             obs, reward, done, info = self.step(action)
-
-            # print(obs)
-
             return_arr.append(reward)
 
             if self.show_viewer:
@@ -387,10 +344,8 @@ class RobotEnvSeparatedBenchmark(Env):
         trans = 0.5 * (x - self.xd).T @ (x - self.xd)
         dis = np.sqrt(rot + trans)
 
-        # z_part = abs(x[2] - self.xd[2])
         eg = self.get_eX()
         z_part = abs(eg[2,0])
-        # trans_part1 = np.sqrt(0.5 * (x[0:2] - self.xd[0:2]).T @ (x[0:2] - self.xd[0:2]))
         trans_part1 = np.sqrt(eg[0:2,:].T @ eg[0:2,:])
 
         if self.ECGIC:
@@ -405,17 +360,6 @@ class RobotEnvSeparatedBenchmark(Env):
             else:
                 a0 = 0.8; a1 = 0.8; a2 = -0.5; a3 = 0.8; a4 = 0.8; a5 = 0.8
         else:
-            # if dis > 1:
-            #     a0 = 0.6; a1 = 0.6; a2 = 0.9; a3 = 0.6; a4 = 0.6; a5 = 0.6
-            # elif z_part < 0.3 and z_part > 0.10:
-            #     a0 = 0.9; a1 = 0.9; a2 = -0.7; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            # elif z_part < 0.10 and rot < 0.0005 and trans_part1 < 0.0005:
-            #     a0 = 1.5; a1 = 1.5; a2 = 1.5; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            # elif z_part < 0.10:
-            #     a0 = 1.5; a1 = 1.5; a2 = -0.9; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            # else:
-            #     a0 = 0.8; a1 = 0.8; a2 = -0.5; a3 = 0.8; a4 = 0.8; a5 = 0.8
-            
             if dis > 1:
                 a0 = -0.05; a1 = -0.05; a2 = 4/15; a3 = 0.6; a4 = 0.6; a5 = 0.6
             elif z_part < 0.3 and z_part > 0.10:
@@ -429,30 +373,11 @@ class RobotEnvSeparatedBenchmark(Env):
 
         if self.act_type == 'default':
             action = np.array([a0,a1,a2,a3,a4,a5])
-
             action += np.random.randn(6,) * np.array([.05, .05, .05, .05, .05, .05])
-            
             action = np.clip(action, -0.99, 0.99)
         elif self.act_type == 'minimal':
             action = np.array([a0,a2])
             action += np.random.randn(2,) * np.array([.05, .05])
-            action = np.clip(action, -0.99, 0.99)
-
-        elif self.act_type == 'minimal2':
-            action = np.array([a0,a1,a2])
-            action += np.random.randn(3,) * np.array([.05, .05, .05])
-            action = np.clip(action, -0.99, 0.99)
-
-        elif self.act_type == 'minimal2-1':
-            a0_ = (a0 + a1)/2
-            a1_ = (a0 - a1)/2
-            action = np.array([a0_,a1_,a2])
-            action += np.random.randn(3,) * np.array([.05, .05, .05])
-            action = np.clip(action, -0.99, 0.99)
-
-        elif self.act_type == 'minimal3':
-            action = np.array([a0,a1,a2,a3])
-            action += np.random.randn(4,) * np.array([.05, .05, .05, .05])
             action = np.clip(action, -0.99, 0.99)
         
         return action
@@ -464,9 +389,6 @@ class RobotEnvSeparatedBenchmark(Env):
             tau_cmd = self.total_compensation_impedance_control(action)
         else:
             tau_cmd = self.impedance_control(action) # Here the actions are 'impedance gains'
-
-        # if self.testing:
-            # print(action)
 
         self.robot_state.set_control_torque(tau_cmd)
 
@@ -484,8 +406,6 @@ class RobotEnvSeparatedBenchmark(Env):
         dis_trans = np.sqrt((x - self.xd).T @ (x - self.xd))
 
         stuck = self.detect_stuck(x,R)
-        # stuck = False
-        # print(stuck)
 
         if not self.testing:
             if self.done_count >= 40 and not stuck:
@@ -509,15 +429,11 @@ class RobotEnvSeparatedBenchmark(Env):
         if self.iter == self.max_iter -1:
             done = True
 
-        #TODO reward function
         reward = self.get_reward(done,x,R)
-        #TODO generate done functionality
         info = dict()
         info['success'] = success
 
         self.iter +=1 
-
-        # print(obs, obs.shape)
 
         return obs, reward, done, info
     
@@ -530,34 +446,12 @@ class RobotEnvSeparatedBenchmark(Env):
             raw_obs = np.vstack((eg,eV)).reshape((-1,))
         elif self.obs_type == 'pos':
             raw_obs = eg.reshape((-1,)) 
-        elif self.obs_type == 'pos_vel_force':
-            raw_obs = np.vstack((eg,eV,Fe)).reshape((-1,))
-        elif self.obs_type == 'pos_force':
-            raw_obs = np.vstack((eg, Fe)).reshape((-1,))
-        elif self.obs_type == 'feature':
-            raw_obs = self.get_custom_obs()
-        elif self.obs_type == 'pos_feature':
-            eg_reshaped = eg.reshape((-1,))
-            feature = self.get_custom_obs()
-            feature_select = feature[1:3]
-            raw_obs = np.hstack((eg_reshaped, feature_select))
-        elif self.obs_type == 'pos_feature2':
-            eg_reshaped = eg.reshape((-1,))
-            feature = self.get_custom_obs() # dis, z_part, trans_part1, rot, dq_norm
-            feature_select = np.array([feature[2],feature[4]])
-            raw_obs = np.hstack((eg_reshaped, feature_select))
-        elif self.obs_type == 'pos_feature3':
-            eg_reshaped = eg.reshape((-1,))
-            feature = self.get_custom_obs() #dis, z_part, trans_part1, rot, dq_norm
-            feature_select = np.array([feature[1],feature[4]])
-            raw_obs = np.hstack((eg_reshaped, feature_select))
 
         if self.window_size == 1:
             obs = raw_obs
         else:
             self.memorize(raw_obs)
             obs = np.asarray(self.obs_memory).reshape((-1,))
-            # flat obs
 
         if self.obs_is_GCEV: # Should be always false other than obs is GCEV
             # print('collecting GCEV')
@@ -570,7 +464,6 @@ class RobotEnvSeparatedBenchmark(Env):
 
         return obs
 
-    
     def memorize(self,obs):
         _temp = copy.deepcopy(self.obs_memory)
         for i in range(self.window_size):
@@ -607,10 +500,7 @@ class RobotEnvSeparatedBenchmark(Env):
 
         if dis < 0.1 and abs(x[2] - self.xd[2]) < 0.026:
             self.done_count += 1
-            # reward = (self.max_iter - self.iter) * self.dt * 0.2 + 2
             reward = 3
-
-            # print(reward, self.done_count)
 
         if self.reward_version == 'force_penalty':
             
@@ -621,12 +511,8 @@ class RobotEnvSeparatedBenchmark(Env):
             trans_part1 = np.sqrt((x[0:2] - self.xd[0:2]).T @ (x[0:2] - self.xd[0:2]))
 
             if trans_part1 > 0.0002:
-                reward -= 0.1 * fe_norm / 20
+                reward -= 0.1 * fe_norm / 20 
 
-            # print(fe_norm, reward)         
-                
-
-        
         return reward 
 
     def get_eX(self):
@@ -638,9 +524,9 @@ class RobotEnvSeparatedBenchmark(Env):
 
         eR = -((np.cross(R1,Rd1) + np.cross(R2,Rd2) + np.cross(R3,Rd3))).reshape((-1,1))
 
-        eg = np.vstack((ep,eR))
+        eX = np.vstack((ep,eR))
 
-        return eg
+        return eX
 
     def get_eV(self):
         #just for symmetry of the code
@@ -704,9 +590,6 @@ class RobotEnvSeparatedBenchmark(Env):
         spatial_quat = np.array([0.0, 0.0, 0.0, 1.0])
         Fe = self.robot_state.get_ee_force(spatial_quat)
         self.Fe = Fe.reshape((-1,1))
-        # print(Fe)
-        # Fe = self.robot_state.get_ee_force_mine(spatial_quat)
-        # print(Fe)
 
         if self.use_external_force:
             tau_tilde = -Kg @ eX -Kd @ eV - Fe.reshape((-1,1))
@@ -727,25 +610,6 @@ class RobotEnvSeparatedBenchmark(Env):
             axy = np.array([action[0],action[0]])
             az = action[1]
             ao = np.array([1.0,1.0,1.0])
-        elif self.act_type == 'minimal2':
-            axy = np.array([action[0], action[1]])
-            az = action[2]
-            ao = np.array([1.0,1.0,1.0])
-        elif self.act_type == 'minimal2-1':
-            a0 = (action[0] + action[1])/2
-            a1 = (action[0] - action[1])/2
-            axy = np.array([a0, a1])
-            axy = np.clip(axy,-1,1)
-            az = action[2]
-            ao = np.array([1.0,1.0,1.0])
-        elif self.act_type == 'minimal3':
-            axy = np.array([action[0], action[1]])
-            az = action[2]
-            ao = np.array([action[3], action[3], action[3]])
-        
-        # kt_xy = pow(10,0.75*axy + 2) # scaling to (1.25, 2.75
-        # kt_z = pow(10,1.0*az + 1.5) # 0.5 to 2.5
-        # kt = np.hstack((kt_xy,kt_z))
 
         #update
         kt_xy = pow(10,1.0*axy + 2.5) # scaling to (1.5, 3.5)
@@ -756,22 +620,6 @@ class RobotEnvSeparatedBenchmark(Env):
         Kp = np.diag(kt); KR = np.diag(ko)
 
         return Kp, KR
-
-    def get_custom_obs(self):
-        x,R = self.robot_state.get_pose_mine()
-        rot = np.trace(np.eye(3) - self.Rd.T @ R)
-        trans = 0.5 * (x - self.xd).T @ (x - self.xd)
-        dis = np.sqrt(rot + trans)
-
-        eg = self.get_eX()
-        z_part = abs(eg[2,0])
-        trans_part1 = np.linalg.norm(eg[0:2,0])
-
-        dq_norm = np.linalg.norm(self.robot_state.get_joint_velocity())
-
-        obs = np.array([dis, z_part, trans_part1, rot, dq_norm])
-        obs = np.tanh(obs)
-        return obs
     
     def get_custom_obs_data_collection(self):
         x,R = self.robot_state.get_pose_mine()
@@ -791,24 +639,7 @@ class RobotEnvSeparatedBenchmark(Env):
         w_hat = np.array([[0, -w[2], w[1]],
                           [w[2], 0, -w[0]],
                           [-w[1], w[0], 0]])
-
         return w_hat
-
-
-    def csv_logger(self, q, dq, tau_cmd):
-        if robot_name == 'ur5e':
-            header = ['q1','q2','q3','q4','q5','q6','dq1','dq2','dq3','dq4','dq5','dq6','t1','t2','t3','t4','t5','t6']
-
-        row = q.tolist() + dq.tolist() + tau_cmd.tolist()
-
-        if os.path.isfile('./logs/'+self.csv_name+'.csv'):
-            with open('./logs/'+self.csv_name+'.csv','a') as fd:
-                writer = csv.writer(fd)
-                writer.writerow(row)
-        else:
-            with open('./logs/'+self.csv_name+'.csv','a') as fd:
-                writer = csv.writer(fd)
-                writer.writerow(header)
 
 if __name__ == "__main__":
     robot_name = 'fanuc' # Panda currently unavailable - we don't have dynamic model of this right now.

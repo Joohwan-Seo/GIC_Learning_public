@@ -1,5 +1,3 @@
-from gic_env.pih_env import RobotEnv
-from gic_env.pih_env_benchmark import RobotEnvBenchmark
 from gic_env.pih_env_separated import RobotEnvSeparated
 from gic_env.pih_env_separated_benchmark import RobotEnvSeparatedBenchmark
 import numpy as np

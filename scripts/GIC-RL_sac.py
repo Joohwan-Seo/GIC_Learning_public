@@ -1,6 +1,3 @@
-from gic_env.pih_env import RobotEnv
-from gic_env.pih_env_residual import RobotEnvResidual
-from gic_env.pih_env_benchmark import RobotEnvBenchmark
 from gic_env.pih_env_separated import RobotEnvSeparated
 from gic_env.pih_env_separated_benchmark import RobotEnvSeparatedBenchmark
 
@@ -36,34 +33,14 @@ def experiment(variant):
     
 
     if not variant['benchmark']:
-        if not variant['residual']:
-            # expl_env = NormalizedBoxEnv(RobotEnv(show_viewer = False, 
-            #                                      obs_type = obs_type, 
-            #                                      window_size = window_size, 
-            #                                      ECGIC = ECGIC, 
-            #                                      use_ext_force=use_ext_force, 
-            #                                      act_type = act_type))
-            expl_env = NormalizedBoxEnv(RobotEnvSeparated(show_viewer = False, 
-                                                 obs_type = obs_type, 
-                                                 window_size = window_size, 
-                                                 ECGIC = ECGIC, 
-                                                 use_ext_force=use_ext_force,
-                                                 reward_version = reward_version, 
-                                                 act_type = act_type))
-        else:
-            expl_env = NormalizedBoxEnv(RobotEnvResidual(show_viewer = False, 
-                                                         obs_type = obs_type, 
-                                                         window_size = window_size, 
-                                                         ECGIC = ECGIC,
-                                                         ))
-        # eval_env = NormalizedBoxEnv(RobotEnv(show_viewer = False, obs_type = obs_type))
+        expl_env = NormalizedBoxEnv(RobotEnvSeparated(show_viewer = False, 
+                                                obs_type = obs_type, 
+                                                window_size = window_size, 
+                                                ECGIC = ECGIC, 
+                                                use_ext_force=use_ext_force,
+                                                reward_version = reward_version, 
+                                                act_type = act_type))
     elif variant['benchmark']:
-        # expl_env = NormalizedBoxEnv(RobotEnvBenchmark(show_viewer = False, 
-        #                                               obs_type = obs_type, 
-        #                                               window_size = window_size, 
-        #                                               ECGIC = ECGIC,
-        #                                               #act_type not defined: needs to be done,
-        #                                               ))
         expl_env = NormalizedBoxEnv(RobotEnvSeparatedBenchmark(show_viewer = False, 
                                                       obs_type = obs_type, 
                                                       window_size = window_size, 
@@ -71,7 +48,6 @@ def experiment(variant):
                                                       use_ext_force=use_ext_force,
                                                       reward_version = reward_version,
                                                       act_type = act_type,
-                                                      #act_type not defined: needs to be done,
                                                       ))
 
     eval_env = expl_env
@@ -105,19 +81,6 @@ def experiment(variant):
         hidden_sizes=[M, M, M],
     )
     
-    if variant['trainer_kwargs']['use_pretrained_policy']:
-        if not variant['benchmark']:
-            if variant['obs_type'] == 'pos':
-                pretrained_weight = torch.load('data/Behavior_Cloning/BC_GIC_3x128_pos_itr_39.pkl')
-            else:
-                raise NotImplementedError('obs type not correct')
-        else:
-            if variant['obs_type'] == 'pos':
-                pretrained_weight = torch.load('data/Behavior_Cloning/BC_CIC_3x128_pos_itr_77.pkl')
-            else:
-                raise NotImplementedError('obs type not correct')
-            
-        policy.load_state_dict(pretrained_weight)
 
     eval_policy = MakeDeterministic(policy)
     eval_path_collector = MdpPathCollector(
@@ -169,8 +132,7 @@ if __name__ == "__main__":
             num_eval_steps_per_epoch=4000,
             num_trains_per_train_loop= 500,
             num_expl_steps_per_train_loop=4000,
-            min_num_steps_before_training=200000, #
-            # min_num_steps_before_training = 15000, #edited 05/28/2023 - Let's see how it goes
+            min_num_steps_before_training=200000,
             max_path_length=4000,
             batch_size = 1024,
             use_expert_policy=True
@@ -179,20 +141,16 @@ if __name__ == "__main__":
             discount=0.99,
             soft_target_tau=5e-3,
             target_update_period=10,
-            policy_lr=3e-4, # worked well with 1e-4
-            qf_lr=3e-4, # worked well with 1e-4
+            policy_lr=3e-4, 
+            qf_lr=3e-4,
             reward_scale=1,
             use_automatic_entropy_tuning=True,
-            ######## JS modified #######
-            use_pretrained_policy = False,
-            ############################
         ),
         ECGIC = False,
         benchmark = True,
         seed = int(2),
         window_size = int(1),
         use_ext_force = False,
-        residual = False,
         action_type = 'minimal',
         env_type = 'benchmark', # 'default' or 'benchmark'
         reward_version = 'force_penalty' # None or 'force_penalty'

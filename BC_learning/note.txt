@@ -1,0 +1,3 @@
+Note that learning behavior cloning was conducted on the Colab, since it does not require any mujoco environment to bug with.
+All the directories in that `Manipulation_BC.ipynb` file are defined in the google drive. 
+Dataset is not uploaded due to the maximum size issue with Github.

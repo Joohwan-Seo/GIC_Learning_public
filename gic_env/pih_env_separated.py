@@ -32,9 +32,9 @@ class RobotEnvSeparated(Env):
             self.obs_is_Cart = True
         else:
             self.obs_is_Cart = False
-        print('===================')
-        print('I AM IN DEFAULT ENV')
-        print('===================')
+        print('=================================')
+        print('USING GEOMETRIC IMPEDANCE CONTROL')
+        print('=================================')
 
 
         #NOTE(JS) The determinant of the desired rotation matrix should be always 1.
@@ -80,10 +80,6 @@ class RobotEnvSeparated(Env):
                                 [1, 0, 0],
                                 [0, 0, -1]])
             self.Rd = Rt @ self.Rd
-        # self.xd = np.array([0.60, 0.012, 0.250])
-        # self.Rd = np.array([[0, 0, 1],
-        #                     [0, 1, 0],
-        #                     [-1, 0, 0]])
 
         self.ECGIC = ECGIC #Exact Compensation GIC
         self.TCGIC = TCGIC #Total Compensation GIC, fixed-mass GIC
@@ -99,10 +95,6 @@ class RobotEnvSeparated(Env):
 
         self.dt = 0.002
         self.max_iter = int(max_time/self.dt)
-        self.dummy = 'dummy_change'
-
-        self.logging = False
-        self.csv_name = 'square_PIH_4'
 
         self.time_step = 0
 
@@ -117,18 +109,6 @@ class RobotEnvSeparated(Env):
             self.num_obs = self.robot_state.N * 2
         elif self.obs_type == 'pos':
             self.num_obs = self.robot_state.N
-        elif self.obs_type == 'pos_vel_force':
-            self.num_obs = self.robot_state.N *2 + 6
-        elif self.obs_type == 'pos_force':
-            self.num_obs = self.robot_state.N + 6
-        elif self.obs_type == 'feature':
-            self.num_obs = 5 # distance, rot, trans, z_part, abs(dq)
-        elif self.obs_type == 'pos_feature':
-            self.num_obs = self.robot_state.N + 2
-        elif self.obs_type == 'pos_feature2':
-            self.num_obs = self.robot_state.N + 2
-        elif self.obs_type == 'pos_feature3':
-            self.num_obs = self.robot_state.N + 2
 
         if self.robot_name =='ur5e':
             self.num_act = 6
@@ -137,17 +117,9 @@ class RobotEnvSeparated(Env):
 
         if self.act_type == 'minimal':
             self.num_act = 2
-        elif self.act_type == 'minimal2':
-            self.num_act = 3
-        elif self.act_type == 'minimal2-1':
-            self.num_act = 3
-        elif self.act_type == 'minimal3':
-            self.num_act = 4
 
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.num_obs*self.window_size,))
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(self.num_act,))
-
-        utils.EzPickle.__init__(self)
 
         self.prev_x = np.zeros((3,))
         self.stuck_count = 0
@@ -161,7 +133,7 @@ class RobotEnvSeparated(Env):
         self.reset()
 
     def load_xml(self):
-        dir = "/home/joohwan/deeprl/research/GIC_RL/"
+        dir = "/home/joohwan/deeprl/research/GIC_Learning_public/"
         if self.robot_name == 'ur5e':
             # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/sliding_test.xml"
             if self.hole_ori == 'default':
@@ -187,10 +159,7 @@ class RobotEnvSeparated(Env):
                 model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc_case3.xml"
 
         elif self.robot_name == 'panda':
-            # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/sliding.xml"
-            # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/square_pih.xml"
-            # model_path = "mujoco_models/pih/square_pih.xml"
-            NotImplementedError
+            raise NotImplementedError
 
         self.model = mujoco_py.load_model_from_path(model_path)
         self.sim = mujoco_py.MjSim(self.model)
@@ -209,7 +178,6 @@ class RobotEnvSeparated(Env):
         self.viewer.cam.elevation = 0
 
     def reset(self):
-        # print('resetting')
         self.init_stage = True
         _ = self.initial_sample()
         obs = self._get_obs()
@@ -244,9 +212,6 @@ class RobotEnvSeparated(Env):
 
             self.xd = xd_ori.reshape((-1,1)) + Rd_ori @ np.array([rand_xy[0], rand_xy[1], -0.1]).reshape(-1,1)
             self.Rd = Rd_ori @ Rz @ Ry @ Rx
-
-            # self.xd = xd_ori.reshape((-1,1)) + Rd_ori @ np.array([0.0, -0.04, -0.1]).reshape(-1,1)
-            # self.Rd = Rd_ori
 
             self.xd = self.xd.reshape((-1,))
 
@@ -306,16 +271,13 @@ class RobotEnvSeparated(Env):
 
         elif self.robot_name == 'fanuc':
             if self.hole_ori == 'default':
-                q0_ = np.array([0.0, 0.4, 0.0, 0.0, -np.pi/2 + 0.4, 0.0]) ## Bakje
-                # q0_ = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+                q0_ = np.array([0.0, 0.4, 0.0, 0.0, -np.pi/2 + 0.4, 0.0]) 
             elif self.hole_ori == 'case1':
-                q0_ = np.array([-0.2, 0.5, 0.2, 0., -np.pi/2 + 0.5, 0.]) ## Bakje
-
+                q0_ = np.array([-0.2, 0.5, 0.2, 0., -np.pi/2 + 0.5, 0.]) 
             elif self.hole_ori == 'case2':
-                q0_ = np.array([0., 0.4, 0.2, 0., -np.pi/2 + 0.4, 0.]) ## Bakje
-
+                q0_ = np.array([0., 0.4, 0.2, 0., -np.pi/2 + 0.4, 0.]) 
             elif self.hole_ori == 'case3':
-                q0_ = np.array([0., 0.4, 0.2, 0., 0.4, 0.]) ## Bakje
+                q0_ = np.array([0., 0.4, 0.2, 0., 0.4, 0.]) 
 
             while True:
                 bias = np.array([-0.5, -0.5, -0.5, -0.5, -0.5, -0.5])
@@ -362,8 +324,6 @@ class RobotEnvSeparated(Env):
             action = np.array([0,0,0,0,0,0])
             obs, reward, done, info = self.step(action)
 
-            # print(obs)
-
             return_arr.append(reward)
 
             if self.show_viewer:
@@ -387,10 +347,8 @@ class RobotEnvSeparated(Env):
         trans = 0.5 * (x - self.xd).T @ (x - self.xd)
         dis = np.sqrt(rot + trans)
 
-        # z_part = abs(x[2] - self.xd[2])
         eg = self.get_eg()
         z_part = abs(eg[2,0])
-        # trans_part1 = np.sqrt(0.5 * (x[0:2] - self.xd[0:2]).T @ (x[0:2] - self.xd[0:2]))
         trans_part1 = np.sqrt(eg[0:2,:].T @ eg[0:2,:])
 
         if self.ECGIC:
@@ -405,17 +363,6 @@ class RobotEnvSeparated(Env):
             else:
                 a0 = 0.8; a1 = 0.8; a2 = -0.5; a3 = 0.8; a4 = 0.8; a5 = 0.8
         else:
-            # if dis > 1:
-            #     a0 = 0.6; a1 = 0.6; a2 = 0.9; a3 = 0.6; a4 = 0.6; a5 = 0.6
-            # elif z_part < 0.3 and z_part > 0.10:
-            #     a0 = 0.9; a1 = 0.9; a2 = -0.7; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            # elif z_part < 0.10 and rot < 0.0005 and trans_part1 < 0.0005:
-            #     a0 = 1.5; a1 = 1.5; a2 = 1.5; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            # elif z_part < 0.10:
-            #     a0 = 1.5; a1 = 1.5; a2 = -0.9; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            # else:
-            #     a0 = 0.8; a1 = 0.8; a2 = -0.5; a3 = 0.8; a4 = 0.8; a5 = 0.8
-            
             if dis > 1:
                 a0 = -0.05; a1 = -0.05; a2 = 4/15; a3 = 0.6; a4 = 0.6; a5 = 0.6
             elif z_part < 0.3 and z_part > 0.10:
@@ -429,30 +376,11 @@ class RobotEnvSeparated(Env):
 
         if self.act_type == 'default':
             action = np.array([a0,a1,a2,a3,a4,a5])
-
             action += np.random.randn(6,) * np.array([.05, .05, .05, .05, .05, .05])
-            
             action = np.clip(action, -0.99, 0.99)
         elif self.act_type == 'minimal':
             action = np.array([a0,a2])
             action += np.random.randn(2,) * np.array([.05, .05])
-            action = np.clip(action, -0.99, 0.99)
-
-        elif self.act_type == 'minimal2':
-            action = np.array([a0,a1,a2])
-            action += np.random.randn(3,) * np.array([.05, .05, .05])
-            action = np.clip(action, -0.99, 0.99)
-
-        elif self.act_type == 'minimal2-1':
-            a0_ = (a0 + a1)/2
-            a1_ = (a0 - a1)/2
-            action = np.array([a0_,a1_,a2])
-            action += np.random.randn(3,) * np.array([.05, .05, .05])
-            action = np.clip(action, -0.99, 0.99)
-
-        elif self.act_type == 'minimal3':
-            action = np.array([a0,a1,a2,a3])
-            action += np.random.randn(4,) * np.array([.05, .05, .05, .05])
             action = np.clip(action, -0.99, 0.99)
         
         return action
@@ -484,8 +412,6 @@ class RobotEnvSeparated(Env):
         dis_trans = np.sqrt((x - self.xd).T @ (x - self.xd))
 
         stuck = self.detect_stuck(x,R)
-        # stuck = False
-        # print(stuck)
 
         if not self.testing:
             if self.done_count >= 40 and not stuck:
@@ -501,7 +427,6 @@ class RobotEnvSeparated(Env):
             if dis_trans < 0.026:
                 done = True
                 success = True
-                # print('Success')
             else:
                 done = False
                 success = False
@@ -509,15 +434,11 @@ class RobotEnvSeparated(Env):
         if self.iter == self.max_iter -1:
             done = True
 
-        #TODO reward function
         reward = self.get_reward(done,x,R)
-        #TODO generate done functionality
         info = dict()
         info['success'] = success
 
         self.iter +=1 
-
-        # print(obs, obs.shape)
 
         return obs, reward, done, info
     
@@ -530,34 +451,12 @@ class RobotEnvSeparated(Env):
             raw_obs = np.vstack((eg,eV)).reshape((-1,))
         elif self.obs_type == 'pos':
             raw_obs = eg.reshape((-1,)) 
-        elif self.obs_type == 'pos_vel_force':
-            raw_obs = np.vstack((eg,eV,Fe)).reshape((-1,))
-        elif self.obs_type == 'pos_force':
-            raw_obs = np.vstack((eg, Fe)).reshape((-1,))
-        elif self.obs_type == 'feature':
-            raw_obs = self.get_custom_obs()
-        elif self.obs_type == 'pos_feature':
-            eg_reshaped = eg.reshape((-1,))
-            feature = self.get_custom_obs()
-            feature_select = feature[1:3]
-            raw_obs = np.hstack((eg_reshaped, feature_select))
-        elif self.obs_type == 'pos_feature2':
-            eg_reshaped = eg.reshape((-1,))
-            feature = self.get_custom_obs() # dis, z_part, trans_part1, rot, dq_norm
-            feature_select = np.array([feature[2],feature[4]])
-            raw_obs = np.hstack((eg_reshaped, feature_select))
-        elif self.obs_type == 'pos_feature3':
-            eg_reshaped = eg.reshape((-1,))
-            feature = self.get_custom_obs() #dis, z_part, trans_part1, rot, dq_norm
-            feature_select = np.array([feature[1],feature[4]])
-            raw_obs = np.hstack((eg_reshaped, feature_select))
 
         if self.window_size == 1:
             obs = raw_obs
         else:
             self.memorize(raw_obs)
             obs = np.asarray(self.obs_memory).reshape((-1,))
-            # flat obs
 
         if self.obs_is_Cart:
             x, R = self.robot_state.get_pose_mine()
@@ -596,8 +495,7 @@ class RobotEnvSeparated(Env):
         self.prev_x = x
         return stuck
 
-    def get_reward(self,done,x,R):#TODO()
-
+    def get_reward(self,done,x,R):
         scale = 0.1
         scale2 = 1.0
         dis = np.sqrt(np.trace(np.eye(3) - self.Rd.T @ R) + 0.5 * (x - self.xd).T @ (x - self.xd))
@@ -607,29 +505,19 @@ class RobotEnvSeparated(Env):
         if dis < 0.2 and abs(x[2] - self.xd[2]) < 0.04:
             reward = scale2 * (0.04 - abs(x[2] - self.xd[2]))
 
-
         if dis < 0.1 and abs(x[2] - self.xd[2]) < 0.026:
             self.done_count += 1
-            # reward = (self.max_iter - self.iter) * self.dt * 0.2 + 2
             reward = 3
 
-            # print(reward, self.done_count)
-
         if self.reward_version == 'force_penalty':
-            
-
             fe = self.robot_state.get_ee_force()
             fe_norm = np.linalg.norm(fe)
             fe_norm = abs(fe[2])
             trans_part1 = np.sqrt((x[0:2] - self.xd[0:2]).T @ (x[0:2] - self.xd[0:2]))
 
             if trans_part1 > 0.0002:
-                reward -= 0.1 * fe_norm / 20
+                reward -= 0.1 * fe_norm / 20     
 
-            # print(fe_norm, reward)         
-                
-
-        
         return reward 
 
     def get_eg(self):
@@ -642,7 +530,6 @@ class RobotEnvSeparated(Env):
         return eg
 
     def get_eV(self):
-        #just for symmetry of the code
         return self.robot_state.get_body_ee_velocity()
 
     def total_compensation_impedance_control(self, action):
@@ -655,7 +542,6 @@ class RobotEnvSeparated(Env):
         xd, Rd = self.xd, self.Rd
 
         fp = R.T @ Rd @ Kp @ Rd.T @ (x - xd).reshape((-1,1))
-        # fp = Kp @ R.T @ (x - xd).reshape((-1,1))
         fR = self.vee_map(KR @ Rd.T @ R - R.T @ Rd @ KR)
 
         fg = np.vstack((fp,fR))
@@ -663,7 +549,6 @@ class RobotEnvSeparated(Env):
         eV = self.get_eV()
         Kd = np.sqrt(np.block([[Kp, np.zeros((3,3))],[np.zeros((3,3)), KR]])) * 8
 
-        # Kd = np.eye(6) * 50
 
         Fe = self.robot_state.get_ee_force().reshape((-1,1))
 
@@ -677,17 +562,12 @@ class RobotEnvSeparated(Env):
         tau_tilde = M_tilde @ (np.linalg.inv(H) @ (- Kd @ eV - fg))
         tau_cmd = Jb.T @ tau_tilde + C @ dq + G
 
-        # print(tau_cmd)
-
         return tau_cmd.reshape((-1,))
 
     def impedance_control(self, action):
         Jb = self.robot_state.get_body_jacobian()
 
-        #### For future use 
-        ### 2023/04/27: M and C is not updated right now
         M,C,G = self.robot_state.get_dynamic_matrices()
-        ####
 
         #0 Get impedance gains
         Kp, KR = self.convert_gains(action)
@@ -697,7 +577,6 @@ class RobotEnvSeparated(Env):
         xd, Rd = self.xd, self.Rd
 
         fp = R.T @ Rd @ Kp @ Rd.T @ (x - xd).reshape((-1,1))
-        # fp = Kp @ R.T @ (x - xd).reshape((-1,1))
         fR = self.vee_map(KR @ Rd.T @ R - R.T @ Rd @ KR)
 
         fg = np.vstack((fp,fR))
@@ -707,7 +586,6 @@ class RobotEnvSeparated(Env):
         Kd = np.sqrt(np.block([[Kp, np.zeros((3,3))],[np.zeros((3,3)), KR]])) * 8
 
         Fe = self.robot_state.get_ee_force()
-        # Fe = self.robot_state.get_ee_force_mine()
         self.Fe = Fe.reshape((-1,1))
 
         if self.use_external_force:
@@ -719,7 +597,6 @@ class RobotEnvSeparated(Env):
 
         if abs(det_Jb) < 0.01:
             nonsingular = False
-            # print('singular!:', self.iter)
         else:
             nonsingular = True
 
@@ -741,7 +618,6 @@ class RobotEnvSeparated(Env):
             ])
 
             term = self.lambda_g * (M_tilde @ Bk @ eV + C_tilde @ fg + Kd @ fg)
-            # print(tau_tilde, term)
             tau_tilde = tau_tilde - (term)
 
         tau_cmd = Jb.T @ tau_tilde + G
@@ -760,28 +636,6 @@ class RobotEnvSeparated(Env):
             az = action[1]
             ao = np.array([1.0,1.0,1.0])
 
-        elif self.act_type == 'minimal2':
-            axy = np.array([action[0], action[1]])
-            az = action[2]
-            ao = np.array([1.0,1.0,1.0])
-
-        elif self.act_type == 'minimal2-1':
-            a0 = (action[0] + action[1])/2
-            a1 = (action[0] - action[1])/2
-            axy = np.array([a0, a1])
-            axy = np.clip(axy,-1,1)
-            az = action[2]
-            ao = np.array([1.0,1.0,1.0])
-            
-        elif self.act_type == 'minimal3':
-            axy = np.array([action[0], action[1]])
-            az = action[2]
-            ao = np.array([action[3], action[3], action[3]])
-        
-        # kt_xy = pow(10,0.75*axy + 2) # scaling to (1.25, 2.75
-        # kt_z = pow(10,1.0*az + 1.5) # 0.5 to 2.5
-        # kt = np.hstack((kt_xy,kt_z))
-
         #update
         kt_xy = pow(10,1.0*axy + 2.5) # scaling to (1.5, 3.5)
         kt_z = pow(10,1.5*az + 2.0) # 0.5 to 3.5
@@ -791,22 +645,6 @@ class RobotEnvSeparated(Env):
         Kp = np.diag(kt); KR = np.diag(ko)
 
         return Kp, KR
-
-    def get_custom_obs(self):
-        x,R = self.robot_state.get_pose_mine()
-        rot = np.trace(np.eye(3) - self.Rd.T @ R)
-        trans = 0.5 * (x - self.xd).T @ (x - self.xd)
-        dis = np.sqrt(rot + trans)
-
-        eg = self.get_eg()
-        z_part = abs(eg[2,0])
-        trans_part1 = np.linalg.norm(eg[0:2,0])
-
-        dq_norm = np.linalg.norm(self.robot_state.get_joint_velocity())
-
-        obs = np.array([dis, z_part, trans_part1, rot, dq_norm])
-        obs = np.tanh(obs)
-        return obs
     
     def get_custom_obs_data_collection(self):
         x,R = self.robot_state.get_pose_mine()
@@ -826,27 +664,10 @@ class RobotEnvSeparated(Env):
         w_hat = np.array([[0, -w[2], w[1]],
                           [w[2], 0, -w[0]],
                           [-w[1], w[0], 0]])
-
         return w_hat
 
-
-    def csv_logger(self, q, dq, tau_cmd):
-        if robot_name == 'ur5e':
-            header = ['q1','q2','q3','q4','q5','q6','dq1','dq2','dq3','dq4','dq5','dq6','t1','t2','t3','t4','t5','t6']
-
-        row = q.tolist() + dq.tolist() + tau_cmd.tolist()
-
-        if os.path.isfile('./logs/'+self.csv_name+'.csv'):
-            with open('./logs/'+self.csv_name+'.csv','a') as fd:
-                writer = csv.writer(fd)
-                writer.writerow(row)
-        else:
-            with open('./logs/'+self.csv_name+'.csv','a') as fd:
-                writer = csv.writer(fd)
-                writer.writerow(header)
-
 if __name__ == "__main__":
-    robot_name = 'fanuc' # Panda currently unavailable - we don't have dynamic model of this right now.
+    robot_name = 'fanuc' # UR5e and Fanuc will only work
     env_type = 'square_PIH'
     show_viewer = True
     RE = RobotEnvSeparated(robot_name, env_type, show_viewer = True, obs_type = 'pos', window_size = 1, hole_ori = 'default', ECGIC = False, use_ext_force = False, testing = True, act_type = 'minimal', reward_version = 'force_penalty')

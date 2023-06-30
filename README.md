@@ -11,4 +11,10 @@ https://github.com/Joohwan-Seo/Geometric-Impedance-Control-Public
 ## Python path work should be done before running this code
 ```
 export PYTHONPATH=/your_directory_to_the_GIC_RL_folder:$PYTHONPATH
+```
+
+## Version
+mujoco: 2.0.0 \
+python: 3.6.13\
+cuda: 11.4 (Trained with GPU RTX3060 12GB)
 
