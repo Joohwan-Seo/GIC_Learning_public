@@ -1,7 +1,11 @@
 # GIC-RL + BC
 
-## Based on the Berkeley RL Kit
-Directly Imported from ``https://github.com/rail-berkeley/rlkit''
+## Based on
+Berkeley RL Kit for the Reinforcement Learning\
+Directly Imported from ``https://github.com/rail-berkeley/rlkit``
+
+Environmental Setup using Mujoco\
+``https://github.com/deanpham98/learn-seq``
 
 ## Geometric Impedance Control from
 https://doi.org/10.48550/arXiv.2211.07945 \
