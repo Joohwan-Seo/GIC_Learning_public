@@ -1,5 +1,5 @@
-from gic_env.pih_env_separated import RobotEnvSeparated
-from gic_env.pih_env_separated_benchmark import RobotEnvSeparatedBenchmark
+from gic_env.pih_env import RobotEnv
+from gic_env.pih_env_benchmark import RobotEnvBenchmark
 
 import torch
 
@@ -24,8 +24,6 @@ def experiment(variant):
 
 
     torch.manual_seed(variant['seed'])
-
-    ECGIC = variant['ECGIC']
     window_size = variant['window_size']
     use_ext_force = variant['use_ext_force']
     act_type = variant['action_type']
@@ -33,18 +31,16 @@ def experiment(variant):
     
 
     if not variant['benchmark']:
-        expl_env = NormalizedBoxEnv(RobotEnvSeparated(show_viewer = False, 
-                                                obs_type = obs_type, 
-                                                window_size = window_size, 
-                                                ECGIC = ECGIC, 
-                                                use_ext_force=use_ext_force,
-                                                reward_version = reward_version, 
-                                                act_type = act_type))
+        expl_env = NormalizedBoxEnv(RobotEnv(show_viewer = False, 
+                                             obs_type = obs_type, 
+                                             window_size = window_size,  
+                                             use_ext_force=use_ext_force,
+                                             reward_version = reward_version, 
+                                             act_type = act_type))
     elif variant['benchmark']:
-        expl_env = NormalizedBoxEnv(RobotEnvSeparatedBenchmark(show_viewer = False, 
+        expl_env = NormalizedBoxEnv(RobotEnvBenchmark(show_viewer = False, 
                                                       obs_type = obs_type, 
                                                       window_size = window_size, 
-                                                      ECGIC = ECGIC,
                                                       use_ext_force=use_ext_force,
                                                       reward_version = reward_version,
                                                       act_type = act_type,
@@ -146,21 +142,19 @@ if __name__ == "__main__":
             reward_scale=1,
             use_automatic_entropy_tuning=True,
         ),
-        ECGIC = False,
-        benchmark = True,
+        benchmark = False,
         seed = int(2),
         window_size = int(1),
         use_ext_force = False,
         action_type = 'minimal',
-        env_type = 'benchmark', # 'default' or 'benchmark'
-        reward_version = 'force_penalty' # None or 'force_penalty'
+        env_type = 'benchmark', # 'default' or 'benchmark' default is Geometric approach, benchmark is Cartesian approach
+        reward_version = 'force_penalty' # None or 'force_penalty' None is without force penalty, force_penalty version is the version in the paper.
     )
 
     print('============================================')
-    print('ECGIC:', variant['ECGIC'])
-    print('benchmark:', variant['benchmark'])
-    print('window_size:', variant['window_size'])
-    print('seed:', variant['seed'])
+    print('benchmark:', variant['benchmark']) # GIC or CIC - some scripts use this, and some scripts use the env_type argument
+    print('window_size:', variant['window_size']) # testing for time-windowed observation input; not used, i.e., window_size = 1
+    print('seed:', variant['seed']) # for changing the random seed
     print('==========================================')
 
 

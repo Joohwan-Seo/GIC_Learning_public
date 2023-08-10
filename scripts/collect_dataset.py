@@ -1,5 +1,5 @@
-from gic_env.pih_env_separated import RobotEnvSeparated
-from gic_env.pih_env_separated_benchmark import RobotEnvSeparatedBenchmark
+from gic_env.pih_env import RobotEnv
+from gic_env.pih_env_benchmark import RobotEnvBenchmark
 import numpy as np
 
 from rlkit.envs.wrappers import NormalizedBoxEnv
@@ -19,25 +19,26 @@ def collect_traj(variant):
 
     if variant['env_name'] == 'default':
         print('========== Default ENV ===========')
-        env = NormalizedBoxEnv(RobotEnvSeparated(show_viewer = False, 
-                                                 obs_type = obs_type, 
-                                                 window_size = window_size, 
+        env = NormalizedBoxEnv(RobotEnv(show_viewer = False, 
+                                        obs_type = obs_type, 
+                                        window_size = window_size, 
+                                        ECGIC = ECGIC, 
+                                        use_ext_force = use_ext_force,
+                                        act_type = action_type,
+                                        mixed_obs = mixed_obs,
+                                        ))
+        
+    elif variant['env_name'] == 'benchmark':
+        print('========== Benchmark ENV ===========')
+        env = NormalizedBoxEnv(RobotEnvBenchmark(show_viewer = False, 
+                                                 obs_type = obs_type,
+                                                 testing = False,
+                                                 window_size = window_size,
                                                  ECGIC = ECGIC, 
                                                  use_ext_force = use_ext_force,
                                                  act_type = action_type,
                                                  mixed_obs = mixed_obs,
                                                  ))
-        
-    elif variant['env_name'] == 'benchmark':
-        print('========== Benchmark ENV ===========')
-        env = NormalizedBoxEnv(RobotEnvSeparatedBenchmark(show_viewer = False, 
-                                                          obs_type = obs_type,
-                                                          testing = False,
-                                                          window_size = window_size,
-                                                          ECGIC = ECGIC, 
-                                                          use_ext_force = use_ext_force,
-                                                          act_type = action_type,
-                                                          mixed_obs = mixed_obs,))
 
     else:
         print('Error: Environment NOT SELECTED')

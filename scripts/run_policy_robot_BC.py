@@ -2,11 +2,10 @@ from rlkit.samplers.rollout_functions import rollout
 from rlkit.torch.pytorch_util import set_gpu_mode
 from gic_env.pih_env_benchmark import RobotEnvBenchmark
 from data.Behavior_Cloning.policy_model import BCPolicy
-from gic_env.pih_env_separated import RobotEnvSeparated
-from gic_env.pih_env_separated_benchmark import RobotEnvSeparatedBenchmark
+from gic_env.pih_env import RobotEnv
+from gic_env.pih_env_benchmark import RobotEnvBenchmark
 import argparse
 import torch
-import uuid
 from rlkit.core import logger
 
 import numpy as np
@@ -14,8 +13,6 @@ import numpy as np
 import time
 
 from gic_env.pih_env import RobotEnv
-
-filename = str(uuid.uuid4())
 
 
 def test_policy(args):
@@ -30,8 +27,6 @@ def test_policy(args):
     policy = BCPolicy(input_shape = num_obs * args.window_size)
     policy.load_state_dict(policy_weights)
     policy.float()
-
-    ECGIC = args.ECGIC
 
     cases = ['default','case1','case2','case3']
     cases = ['case2']
@@ -50,11 +45,11 @@ def test_policy(args):
         print('==========================')
     for case in cases:
         if args.benchmark:
-            env = RobotEnvSeparatedBenchmark(show_viewer = args.vis, obs_type = args.obs_type, hole_ori = case, testing = True, 
-                                             window_size = args.window_size, ECGIC = ECGIC, mixed_obs = args.mixed_obs)
+            env = RobotEnvBenchmark(show_viewer = args.vis, obs_type = args.obs_type, hole_ori = case, testing = True, 
+                                    window_size = args.window_size, mixed_obs = args.mixed_obs)
         else:
-            env = RobotEnvSeparated(show_viewer = args.vis, obs_type = args.obs_type, hole_ori = case, testing = True, 
-                                    window_size = args.window_size, ECGIC = ECGIC, use_ext_force=use_ext_force, mixed_obs = args.mixed_obs)
+            env = RobotEnv(show_viewer = args.vis, obs_type = args.obs_type, hole_ori = case, testing = True, 
+                           window_size = args.window_size, use_ext_force=use_ext_force, mixed_obs = args.mixed_obs)
         
         num_success = 0
 
@@ -107,20 +102,22 @@ if __name__ == "__main__":
                         help='Max length of rollout')
     parser.add_argument('--gpu', default = True, action='store_true')
     parser.add_argument('--case', type=str, default='default')
-    parser.add_argument('--vis', type=bool, default = True)
-    parser.add_argument('--benchmark', type=bool, default = True)
+    parser.add_argument('--vis', type=str, default = 'True')
+    parser.add_argument('--benchmark', type=str, default = 'False')
     parser.add_argument('--num_testing', type=int, default = 100)
     parser.add_argument('--window_size', type=int, default = 1)
-    parser.add_argument('--ECGIC', type = str, default = False)
     parser.add_argument('--obs_type', type = str, default = 'pos')
     parser.add_argument('--use_ext_force', type =bool, default = False)
-    parser.add_argument('--mixed_obs', type = bool, default = True)
+    parser.add_argument('--mixed_obs', type = bool, default = False)
     args = parser.parse_args()
+
+    args.benchmark = True if args.benchmark == 'True' else False
+    args.vis = True if args.vis == 'True' else False
 
 
     print('====**** This is Behavior Cloning ****====')
 
-    # print(args)
+    print(args)
 
     # file_name = '/deeprl/research/GIC-RL/data/GIC-RL-nominal-expert-long/GIC_RL_nominal_expert_long_2023_01_27_22_27_18_0000--s-0/itr_6140.pkl'
     # args['file'] = file_name

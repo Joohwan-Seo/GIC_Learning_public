@@ -14,10 +14,11 @@ from gic_env.utils.base import Primitive, PrimitiveStatus
 
 
 
-class RobotEnvSeparated(Env):
+class RobotEnvBenchmark(Env):
     def __init__(self, robot_name = 'fanuc', env_type = 'square_PIH', max_time = 15, show_viewer = False, 
                  obs_type = 'pos', hole_ori = 'default', testing = False, reward_version = None, window_size = 1, 
-                 ECGIC = False, TCGIC = False, use_ext_force = True, act_type = 'default', mixed_obs = False):
+                 use_ext_force = False, act_type = 'default', mixed_obs = False):
+        
         self.robot_name = robot_name
         self.env_type = env_type
         self.hole_ori = hole_ori
@@ -28,12 +29,13 @@ class RobotEnvSeparated(Env):
         self.use_external_force = use_ext_force
         self.act_type = act_type
 
-        if mixed_obs:
-            self.obs_is_Cart = True
+        if mixed_obs: # To collect the data for CIC + GCEV
+            self.obs_is_GCEV = True
         else:
-            self.obs_is_Cart = False
+            self.obs_is_GCEV = False
+
         print('=================================')
-        print('USING GEOMETRIC IMPEDANCE CONTROL')
+        print('USING CARTESIAN IMPEDANCE CONTROL')
         print('=================================')
 
 
@@ -81,12 +83,6 @@ class RobotEnvSeparated(Env):
                                 [0, 0, -1]])
             self.Rd = Rt @ self.Rd
 
-        self.ECGIC = ECGIC #Exact Compensation GIC
-        self.TCGIC = TCGIC #Total Compensation GIC, fixed-mass GIC
-        if self.ECGIC:
-            print('========ECGIC ON==========')
-            self.lambda_g = 0.003
-
         self.show_viewer = show_viewer
         self.load_xml()
         self.obs_type = obs_type
@@ -101,9 +97,7 @@ class RobotEnvSeparated(Env):
         self.kt = 50
         self.ko = 10
 
-        self.iter = 0
-
-        # print('I am here')        
+        self.iter = 0     
 
         if self.obs_type == 'pos_vel':
             self.num_obs = self.robot_state.N * 2
@@ -129,13 +123,11 @@ class RobotEnvSeparated(Env):
             self.obs_memory = [np.zeros(self.num_obs)] * self.window_size
 
         self.Fe = np.zeros((6,1))
-        # self.viewer_setup()
         self.reset()
 
     def load_xml(self):
         dir = "/home/joohwan/deeprl/research/GIC_Learning_public/"
         if self.robot_name == 'ur5e':
-            # model_path = "/home/joohwan/deeprl/research/GIC_learning/mujoco_models/pih/sliding_test.xml"
             if self.hole_ori == 'default':
                 model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e.xml"
             elif self.hole_ori == 'case1':
@@ -167,15 +159,6 @@ class RobotEnvSeparated(Env):
             self.viewer = mujoco_py.MjViewer(self.sim)
         else:
             self.viewer = None
-
-    def viewer_setup(self):
-        assert self.viewer is not None
-        self.viewer.cam.trackbodyid = -1
-        self.viewer.cam.distance = self.model.stat.extent * 0.7
-        self.viewer.cam.lookat[2] = 0.75
-        # self.viewer.cam.lookat[2] = -0.5
-        self.viewer.cam.lookat[2] = 0.15
-        self.viewer.cam.elevation = 0
 
     def reset(self):
         self.init_stage = True
@@ -220,7 +203,7 @@ class RobotEnvSeparated(Env):
             action = np.array([1,1,1,1,1,1]) * 0.8
             obs, reward, done, info = self.step(action)
 
-            eg = self.get_eg()
+            eg = self.get_eX()
             ev = self.get_eV()
 
             count += 1
@@ -274,10 +257,12 @@ class RobotEnvSeparated(Env):
                 q0_ = np.array([0.0, 0.4, 0.0, 0.0, -np.pi/2 + 0.4, 0.0]) 
             elif self.hole_ori == 'case1':
                 q0_ = np.array([-0.2, 0.5, 0.2, 0., -np.pi/2 + 0.5, 0.]) 
+
             elif self.hole_ori == 'case2':
                 q0_ = np.array([0., 0.4, 0.2, 0., -np.pi/2 + 0.4, 0.]) 
+
             elif self.hole_ori == 'case3':
-                q0_ = np.array([0., 0.4, 0.2, 0., 0.4, 0.]) 
+                q0_ = np.array([0., 0.4, 0.2, 0., 0.4, 0.])
 
             while True:
                 bias = np.array([-0.5, -0.5, -0.5, -0.5, -0.5, -0.5])
@@ -319,11 +304,8 @@ class RobotEnvSeparated(Env):
     def test(self):
         return_arr = []        
         for i in range(self.max_iter):
-            # print(i)
             action = self.get_expert_action()
-            action = np.array([0,0,0,0,0,0])
             obs, reward, done, info = self.step(action)
-
             return_arr.append(reward)
 
             if self.show_viewer:
@@ -347,7 +329,7 @@ class RobotEnvSeparated(Env):
         trans = 0.5 * (x - self.xd).T @ (x - self.xd)
         dis = np.sqrt(rot + trans)
 
-        eg = self.get_eg()
+        eg = self.get_eX()
         z_part = abs(eg[2,0])
         trans_part1 = np.sqrt(eg[0:2,:].T @ eg[0:2,:])
 
@@ -388,13 +370,7 @@ class RobotEnvSeparated(Env):
     def step(self, action):
         self.robot_state.update()
 
-        if self.TCGIC:
-            tau_cmd = self.total_compensation_impedance_control(action)
-        else:
-            tau_cmd = self.impedance_control(action) # Here the actions are 'impedance gains'
-
-        # if self.testing:
-            # print(action)
+        tau_cmd = self.impedance_control(action) # Here the actions are 'impedance gains'
 
         self.robot_state.set_control_torque(tau_cmd)
 
@@ -427,6 +403,7 @@ class RobotEnvSeparated(Env):
             if dis_trans < 0.026:
                 done = True
                 success = True
+                # print('Success')
             else:
                 done = False
                 success = False
@@ -443,7 +420,7 @@ class RobotEnvSeparated(Env):
         return obs, reward, done, info
     
     def _get_obs(self):
-        eg = self.get_eg()
+        eg = self.get_eX()
         eV = self.get_eV()
         Fe = self.Fe
 
@@ -458,21 +435,17 @@ class RobotEnvSeparated(Env):
             self.memorize(raw_obs)
             obs = np.asarray(self.obs_memory).reshape((-1,))
 
-        if self.obs_is_Cart:
+        if self.obs_is_GCEV: # Should be always false other than obs is GCEV
+            # print('collecting GCEV')
             x, R = self.robot_state.get_pose_mine()
-            ep = (x - self.xd).reshape((-1,1))
-
-            Rd1 = self.Rd[:,0]; Rd2 = self.Rd[:,1]; Rd3 = self.Rd[:,2]
-            R1 = R[:,0]; R2 = R[:,1]; R3 = R[:,2]
-
-            eR = -((np.cross(R1,Rd1) + np.cross(R2,Rd2) + np.cross(R3,Rd3))).reshape((-1,1))
+            ep = R.T @ (x - self.xd).reshape((-1,1))
+            eR = self.vee_map(self.Rd.T @ R - R.T @ self.Rd)
 
             eg = np.vstack((ep,eR))
             obs = eg.reshape((-1,))
 
         return obs
 
-    
     def memorize(self,obs):
         _temp = copy.deepcopy(self.obs_memory)
         for i in range(self.window_size):
@@ -495,7 +468,8 @@ class RobotEnvSeparated(Env):
         self.prev_x = x
         return stuck
 
-    def get_reward(self,done,x,R):
+    def get_reward(self,done,x,R):#TODO()
+
         scale = 0.1
         scale2 = 1.0
         dis = np.sqrt(np.trace(np.eye(3) - self.Rd.T @ R) + 0.5 * (x - self.xd).T @ (x - self.xd))
@@ -505,127 +479,73 @@ class RobotEnvSeparated(Env):
         if dis < 0.2 and abs(x[2] - self.xd[2]) < 0.04:
             reward = scale2 * (0.04 - abs(x[2] - self.xd[2]))
 
+
         if dis < 0.1 and abs(x[2] - self.xd[2]) < 0.026:
             self.done_count += 1
             reward = 3
 
         if self.reward_version == 'force_penalty':
+            
+
             fe = self.robot_state.get_ee_force()
             fe_norm = np.linalg.norm(fe)
             fe_norm = abs(fe[2])
             trans_part1 = np.sqrt((x[0:2] - self.xd[0:2]).T @ (x[0:2] - self.xd[0:2]))
 
             if trans_part1 > 0.0002:
-                reward -= 0.1 * fe_norm / 20     
+                reward -= 0.1 * fe_norm / 20 
 
         return reward 
 
-    def get_eg(self):
+    def get_eX(self):
         x, R = self.robot_state.get_pose_mine()
-        ep = R.T @ (x - self.xd).reshape((-1,1))
-        eR = self.vee_map(self.Rd.T @ R - R.T @ self.Rd)
+        ep = (x - self.xd).reshape((-1,1))
 
-        eg = np.vstack((ep,eR))
+        Rd1 = self.Rd[:,0]; Rd2 = self.Rd[:,1]; Rd3 = self.Rd[:,2]
+        R1 = R[:,0]; R2 = R[:,1]; R3 = R[:,2]
 
-        return eg
+        eR = -((np.cross(R1,Rd1) + np.cross(R2,Rd2) + np.cross(R3,Rd3))).reshape((-1,1))
+
+        eX = np.vstack((ep,eR))
+
+        return eX
 
     def get_eV(self):
-        return self.robot_state.get_body_ee_velocity()
-
-    def total_compensation_impedance_control(self, action):
-        Jb = self.robot_state.get_body_jacobian()
-        M,C,G = self.robot_state.get_dynamic_matrices()
-        Kp, KR = self.convert_gains(action)
-
-        #1 Calculate positional force
-        x, R = self.robot_state.get_pose_mine()
-        xd, Rd = self.xd, self.Rd
-
-        fp = R.T @ Rd @ Kp @ Rd.T @ (x - xd).reshape((-1,1))
-        fR = self.vee_map(KR @ Rd.T @ R - R.T @ Rd @ KR)
-
-        fg = np.vstack((fp,fR))
-
-        eV = self.get_eV()
-        Kd = np.sqrt(np.block([[Kp, np.zeros((3,3))],[np.zeros((3,3)), KR]])) * 8
-
-
-        Fe = self.robot_state.get_ee_force().reshape((-1,1))
-
-        M_tilde_inv = Jb @ np.linalg.pinv(M) @ Jb.T
-        M_tilde = np.linalg.pinv(M_tilde_inv)
-
-        H = np.eye(6) * np.array([2., 2., 2., 2., 2., 2.])
-
-        dq = self.robot_state.get_joint_velocity().reshape((-1,1))
-
-        tau_tilde = M_tilde @ (np.linalg.inv(H) @ (- Kd @ eV - fg))
-        tau_cmd = Jb.T @ tau_tilde + C @ dq + G
-
-        return tau_cmd.reshape((-1,))
+        #just for symmetry of the code
+        return self.robot_state.get_spatial_ee_velocity()
 
     def impedance_control(self, action):
-        Jb = self.robot_state.get_body_jacobian()
+        Je = self.robot_state.get_jacobian_mine() ## self.robot_state.get_jacobian_mine() returns exactly same value
 
+        #### For future use
         M,C,G = self.robot_state.get_dynamic_matrices()
+        ####
 
-        #0 Get impedance gains
-        Kp, KR = self.convert_gains(action)
-
-        #1 Calculate positional force
-        x, R = self.robot_state.get_pose_mine()
-        xd, Rd = self.xd, self.Rd
-
-        fp = R.T @ Rd @ Kp @ Rd.T @ (x - xd).reshape((-1,1))
-        fR = self.vee_map(KR @ Rd.T @ R - R.T @ Rd @ KR)
-
-        fg = np.vstack((fp,fR))
+        #1. get error pos vector
+        eX = self.get_eX()
 
         #2. get error vel vector        
         eV = self.get_eV()
-        Kd = np.sqrt(np.block([[Kp, np.zeros((3,3))],[np.zeros((3,3)), KR]])) * 8
 
-        Fe = self.robot_state.get_ee_force()
+        Kp,KR = self.convert_gains(action)
+
+        Kg = np.block([[Kp, np.zeros((3,3))],[np.zeros((3,3)), KR]])
+        Kd = np.sqrt(Kg) * 8
+
+        spatial_quat = np.array([0.0, 0.0, 0.0, 1.0])
+        Fe = self.robot_state.get_ee_force(spatial_quat)
         self.Fe = Fe.reshape((-1,1))
 
         if self.use_external_force:
-            tau_tilde = -fg -Kd @ eV + Fe.reshape((-1,1))
+            tau_tilde = -Kg @ eX -Kd @ eV - Fe.reshape((-1,1))
         else:
-            tau_tilde = -fg -Kd @ eV
+            tau_tilde = -Kg @ eX -Kd @ eV
 
-        det_Jb = np.linalg.det(Jb)
-
-        if abs(det_Jb) < 0.01:
-            nonsingular = False
-        else:
-            nonsingular = True
-
-        if self.ECGIC and nonsingular:
-            Jb_dot = self.robot_state.get_body_jacobian_dot()
-            Jb_inv = np.linalg.pinv(Jb)
-            M_tilde = Jb_inv.T @ M @ Jb_inv
-            C_tilde = Jb_inv.T @ (C - M @ Jb_inv @ Jb_dot) @ Jb_inv
-
-            Bk_11 = R.T @ Rd @ Kp @ Rd.T @ R
-            Bk_12 = self.hat_map(fp)
-            Bk_21 = np.zeros((3,3))
-            mat = R.T @ Rd @ KR
-            Bk_22 = np.trace(mat)*np.eye(3) - mat
-
-            Bk = np.block([
-                [Bk_11, Bk_12],
-                [Bk_21, Bk_22],
-            ])
-
-            term = self.lambda_g * (M_tilde @ Bk @ eV + C_tilde @ fg + Kd @ fg)
-            tau_tilde = tau_tilde - (term)
-
-        tau_cmd = Jb.T @ tau_tilde + G
+        tau_cmd = Je.T @ tau_tilde + G    
 
         return tau_cmd.reshape((-1,))
     
     def convert_gains(self,action):
-
         if self.act_type == 'default':
             axy = action[0:2]
             az = action[2]
@@ -648,7 +568,7 @@ class RobotEnvSeparated(Env):
     
     def get_custom_obs_data_collection(self):
         x,R = self.robot_state.get_pose_mine()
-        eg = self.get_eg()
+        eg = self.get_eX()
         eV = self.get_eV()
 
         return eg, eV, x, R
@@ -667,8 +587,8 @@ class RobotEnvSeparated(Env):
         return w_hat
 
 if __name__ == "__main__":
-    robot_name = 'fanuc' # UR5e and Fanuc will only work
+    robot_name = 'fanuc' # Panda currently unavailable - we don't have dynamic model of this right now.
     env_type = 'square_PIH'
     show_viewer = True
-    RE = RobotEnvSeparated(robot_name, env_type, show_viewer = True, obs_type = 'pos', window_size = 1, hole_ori = 'default', ECGIC = False, use_ext_force = False, testing = True, act_type = 'minimal', reward_version = 'force_penalty')
+    RE = RobotEnvBenchmark(robot_name, env_type, show_viewer = True, obs_type = 'pos', window_size = 1, hole_ori = 'default', use_ext_force = False, testing = True, act_type = 'minimal', reward_version = 'force_penalty')
     RE.test()
