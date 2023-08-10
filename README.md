@@ -40,6 +40,7 @@ For CIC + CEV
 python scripts/run_policy_robot.py data/Fanuc_success/final_CIC_minimal_separated_pos_3x128_reward2/itr_90.pkl --benchmark True --vis True
 ```
 
+<<<<<<< HEAD
 ## Based on the Berkeley RL Kit
 Directly Imported from ``https://github.com/rail-berkeley/rlkit``
 
@@ -47,6 +48,14 @@ Directly Imported from ``https://github.com/rail-berkeley/rlkit``
 ``https://github.com/deanpham98/learn-seq/``
 
 Most of the detailed functionalities are designed by myself. 
+=======
+## Based on
+Berkeley RL Kit for the Reinforcement Learning\
+Directly Imported from ``https://github.com/rail-berkeley/rlkit``
+
+Environmental Setup using Mujoco\
+``https://github.com/deanpham98/learn-seq``
+>>>>>>> 8535483aea9a7006de9ac985c42152d1816fc773
 
 ## Geometric Impedance Control from
 https://doi.org/10.48550/arXiv.2211.07945 \
