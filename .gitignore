@@ -3,3 +3,4 @@
 !/data/Fanuc_success/
 *.pyo
 *.pyc
+*.cpython-36.pyc

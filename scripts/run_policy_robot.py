@@ -69,31 +69,6 @@ def test_policy(args):
 
     print("Policy loaded")
 
-def simulate_policy(args):
-    data = torch.load(args.file)
-    policy = data['evaluation/policy']
-    env = RobotEnv(show_viewer = True, obs_type = args.obs_type, hole_ori = args.case, testing = True, window_size = args.window_size, use_ext_force=args.use_ext_force, act_type = args.action_type)
-    print("Policy loaded")
-    if args.gpu:
-        set_gpu_mode(True)
-        policy.cuda()
-    while True:
-        path = rollout(
-            env,
-            policy,
-            max_path_length=args.H,
-            render=False,
-        )
-        if hasattr(env, "log_diagnostics"):
-            env.log_diagnostics([path])
-        logger.dump_tabular()
-
-def testing(args):
-    data = torch.load(args.file)
-    policy = data['evaluation/policy']
-
-    print(policy.state_dict())
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('file', type=str,

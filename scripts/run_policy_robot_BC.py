@@ -29,7 +29,6 @@ def test_policy(args):
     policy.float()
 
     cases = ['default','case1','case2','case3']
-    cases = ['case2']
 
     num_testing = args.num_testing
 
@@ -66,18 +65,13 @@ def test_policy(args):
                 obs_tensor = torch.from_numpy(obs)
 
                 obs_tensor = obs_tensor.to(torch.float32)                
-                # norm_obs_tensor = norm_obs_tensor.double()
-                # print(norm_obs_tensor)
                 action = policy(obs_tensor.to(cuda0))
                 action = action.cpu().detach().numpy()
-                # action = env.get_expert_action()
                 next_obs, rew, done, info =env.step(action)
 
-                # print(type(next_obs))
                 obs = next_obs
                 
                 if done :
-                    # print(info['success'])
                     if info['success']:
                         num_success += 1
                     break        
@@ -87,12 +81,6 @@ def test_policy(args):
         print('Case:',case,'--','success rate:',num_success/num_testing * 100)
 
     print("Policy loaded")
-
-
-def testing(args):
-    data = torch.load(args.file)
-    policy = data['evaluation/policy']
-    print(data)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -119,9 +107,4 @@ if __name__ == "__main__":
 
     print(args)
 
-    # file_name = '/deeprl/research/GIC-RL/data/GIC-RL-nominal-expert-long/GIC_RL_nominal_expert_long_2023_01_27_22_27_18_0000--s-0/itr_6140.pkl'
-    # args['file'] = file_name
-
-    # simulate_policy(args)
     test_policy(args)
-    # testing(args)
