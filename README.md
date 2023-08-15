@@ -62,3 +62,4 @@ mujoco: 2.0.0 \
 python: 3.6.13\
 cuda: 11.4 (Trained with GPU RTX3060 12GB)
 
+## To be submitted to Robotics and Automation Letters, and possibly to ICRA 2024
