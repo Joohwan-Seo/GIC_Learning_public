@@ -62,4 +62,7 @@ mujoco: 2.0.0 \
 python: 3.6.13\
 cuda: 11.4 (Trained with GPU RTX3060 12GB)
 
-## To be submitted to Robotics and Automation Letters, and possibly to ICRA 2024
+## To be submitted to
+Robotics and Automation Letters (RAL) and possibly ICRA 2024
+
+Seo. et al. Geometry Matters: Towards Learning Transferability in Robotic Manipulation Tasks on SE(3)
