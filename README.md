@@ -65,4 +65,4 @@ cuda: 11.4 (Trained with GPU RTX3060 12GB)
 ## To be submitted to
 Robotics and Automation Letters (RAL) and possibly ICRA 2024
 
-Seo. et al. Geometry Matters: Towards Learning Transferability in Robotic Manipulation Tasks on SE(3)
+Seo et al., Geometry Matters: Towards Learning Transferability in Robotic Manipulation Tasks on SE(3)
