@@ -68,9 +68,11 @@ Robotics and Automation Letters (RAL) and possibly ICRA 2024
 Seo et al., Robot Manipulation Task Learning by Leveraging SE(3) Group Invariance and Equivariance
 
 ### Bibtex Citation
+``
 @article{seo2023robot,
   title={Robot Manipulation Task Learning by Leveraging SE (3) Group Invariance and Equivariance},
   author={Seo, Joohwan and Prakash, Nikhil Potu Surya and Zhang, Xiang and Wang, Changhao and Choi, Jongeun and Tomizuka, Masayoshi and Horowitz, Roberto},
   journal={arXiv preprint arXiv:2308.14984},
   year={2023}
 }
+``
