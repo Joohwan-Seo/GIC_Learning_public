@@ -333,28 +333,16 @@ class RobotEnvBenchmark(Env):
         z_part = abs(eg[2,0])
         trans_part1 = np.sqrt(eg[0:2,:].T @ eg[0:2,:])
 
-        if self.ECGIC:
-            if dis > 1:
-                a0 = 0.6; a1 = 0.6; a2 = 0.4; a3 = 0.6; a4 = 0.6; a5 = 0.6
-            elif z_part < 0.3 and z_part > 0.10:
-                a0 = 0.9; a1 = 0.9; a2 = -0.7; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            elif z_part < 0.10 and rot < 0.001 and trans_part1 < 0.001:
-                a0 = 0.9; a1 = 0.9; a2 = 0.9; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            elif z_part < 0.10:
-                a0 = 0.9; a1 = 0.9; a2 = -0.9; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            else:
-                a0 = 0.8; a1 = 0.8; a2 = -0.5; a3 = 0.8; a4 = 0.8; a5 = 0.8
+        if dis > 1:
+            a0 = -0.05; a1 = -0.05; a2 = 4/15; a3 = 0.6; a4 = 0.6; a5 = 0.6
+        elif z_part < 0.3 and z_part > 0.10:
+            a0 = 0.25; a1 = 0.25; a2 = -0.8; a3 = 0.9; a4 = 0.9; a5 = 0.9
+        elif z_part < 0.10 and rot < 0.0005 and trans_part1 < 0.0002:
+            a0 = 0.5; a1 = 0.5; a2 = 2/3; a3 = 0.9; a4 = 0.9; a5 = 0.9
+        elif z_part < 0.10:
+            a0 = 0.5; a1 = 0.5; a2 = -0.95; a3 = 0.9; a4 = 0.9; a5 = 0.9
         else:
-            if dis > 1:
-                a0 = -0.05; a1 = -0.05; a2 = 4/15; a3 = 0.6; a4 = 0.6; a5 = 0.6
-            elif z_part < 0.3 and z_part > 0.10:
-                a0 = 0.25; a1 = 0.25; a2 = -0.8; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            elif z_part < 0.10 and rot < 0.0005 and trans_part1 < 0.0002:
-                a0 = 0.5; a1 = 0.5; a2 = 2/3; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            elif z_part < 0.10:
-                a0 = 0.5; a1 = 0.5; a2 = -0.95; a3 = 0.9; a4 = 0.9; a5 = 0.9
-            else:
-                a0 = 0.1; a1 = 0.1; a2 = -2/3; a3 = 0.8; a4 = 0.8; a5 = 0.8
+            a0 = 0.1; a1 = 0.1; a2 = -2/3; a3 = 0.8; a4 = 0.8; a5 = 0.8
 
         if self.act_type == 'default':
             action = np.array([a0,a1,a2,a3,a4,a5])
