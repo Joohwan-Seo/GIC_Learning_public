@@ -19,12 +19,12 @@ Hyperparameters and the statements are denoted as annotations in each file as mu
 ### Behavior Cloning 
 For GIC + GCEV
 ```
-python scripts/run_policy_robot_BC.py data/Fanuc_success/Behavior_cloning/BC_policy_GIC_itr_39_noforce.pt --benchmark False --vis True
+python scripts/run_policy_robot_BC.py data/Fanuc_success/Behavior_cloning/BC_policy_GIC_GCEV_300_itr_39.pt --benchmark False --vis True
 ```
 
 For CIC + CEV
 ```
-python scripts/run_policy_robot_BC.py data/Fanuc_success/Behavior_cloning/BC_policy_CIC_itr_39_noforce.pt --benchmark True --vis True
+python scripts/run_policy_robot_BC.py data/Fanuc_success/Behavior_cloning/BC_policy_CIC_CEV_300_default_39.pt --benchmark True --vis True
 ```
 
 If you want a mixed observation result, change ``mixed_obs`` to ``True``
@@ -75,3 +75,5 @@ Seo et al., Robot Manipulation Task Learning by Leveraging SE(3) Group Invarianc
   year={2023} \
 }
 
+## Project Website
+https://sites.google.com/berkeley.edu/equivariant-task-learning/home
