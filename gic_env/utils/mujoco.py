@@ -125,7 +125,6 @@ def get_geom_friction(model, geom_name):
     geom_id = functions.mj_name2id(model, MJ_GEOM_OBJ, geom_name)
     return model.geom_friction[geom_id, :]
 
-
 def get_body_mass(model, body_name):
     body_id = functions.mj_name2id(model, MJ_BODY_OBJ, body_name)
     return model.body_mass[body_id]
@@ -162,6 +161,12 @@ def set_geom_friction(model, geom_name, friction):
 
 
 def set_body_pose(model, body_name, pos, quat):
+    body_id = functions.mj_name2id(model, MJ_BODY_OBJ, body_name)
+    model.body_pos[body_id, :] = pos
+    model.body_quat[body_id, :] = quat
+
+def set_body_pose_rotm(model, body_name, pos, R):
+    quat = mat2quat(R)
     body_id = functions.mj_name2id(model, MJ_BODY_OBJ, body_name)
     model.body_pos[body_id, :] = pos
     model.body_quat[body_id, :] = quat

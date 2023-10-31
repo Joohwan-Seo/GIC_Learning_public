@@ -5,19 +5,23 @@ import mujoco_py
 import numpy as np
 import time, csv, os, copy
 
+from scipy.linalg import block_diag
+
 from gym import utils
 
 # import matplotlib.pyplot as plt
 from gic_env.utils.robot_state import RobotState
-from gic_env.utils.mujoco import set_state
+from gic_env.utils.mujoco import set_state, set_body_pose_rotm
 from gic_env.utils.base import Primitive, PrimitiveStatus
+
+from gic_env.utils.cases_handler import get_cases
 
 
 
 class RobotEnvBenchmark(Env):
     def __init__(self, robot_name = 'fanuc', env_type = 'square_PIH', max_time = 15, show_viewer = False, 
                  obs_type = 'pos', hole_ori = 'default', testing = False, reward_version = None, window_size = 1, 
-                 use_ext_force = False, act_type = 'default', mixed_obs = False):
+                 use_ext_force = False, act_type = 'default', mixed_obs = False, hole_angle = 0.0, fix_camera = False):
         
         self.robot_name = robot_name
         self.env_type = env_type
@@ -28,6 +32,7 @@ class RobotEnvBenchmark(Env):
         self.window_size = window_size
         self.use_external_force = use_ext_force
         self.act_type = act_type
+        self.fix_camera = fix_camera
 
         if mixed_obs: # To collect the data for CIC + GCEV
             self.obs_is_GCEV = True
@@ -41,50 +46,54 @@ class RobotEnvBenchmark(Env):
 
         #NOTE(JS) The determinant of the desired rotation matrix should be always 1.
         # (by the definition of the rotational matrix.)
+
+        self.Rd = np.array([[0, 1, 0],
+                            [1, 0, 0],
+                            [0, 0, -1]])
         if self.hole_ori == 'default':
             if self.testing:
                 self.xd = np.array([0.60, 0.012, 0.05])
                 self.Rd = np.array([[0, 1, 0],
                                     [1, 0, 0],
                                     [0, 0, -1]])
+                self.file_name = "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
             else:
                 self.xd = np.array([0.60, 0.012, 0.05])
                 self.Rd = np.array([[0, 1, 0],
                                     [1, 0, 0],
                                     [0, 0, -1]])
+                self.file_name = "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
             
-        elif self.hole_ori == 'case1':
-            self.xd = np.array([0.65, 0.1, 0.08])
-            Rt = np.array([[1, 0, 0],
-                           [0, 0.8660, -0.50],
-                           [0,0.50,0.8660]])
-            self.Rd = np.array([[0, 1, 0],
-                                [1, 0, 0],
-                                [0, 0, -1]])
-            self.Rd = Rt @ self.Rd
+        elif self.hole_ori == 'arbitrary_x':
+            self.center_p = np.array([0.65, 0, 0.65])
+            self.r = 0.6
 
-        elif self.hole_ori == 'case2':
-            self.xd = np.array([0.75, 0.00, 0.15])
-            Rt = np.array([[0.8660, 0, -0.5],
-                           [0, 1, 0],
-                           [0.5, 0, 0.8660]])
-            self.Rd = np.array([[0, 1, 0],
-                                [1, 0, 0],
-                                [0, 0, -1]])
-            self.Rd = Rt @ self.Rd
+            if hole_angle == 'random':
+                self.hole_angle_random = True
+                self.hole_angle = (np.random.rand() - 0.5) * np.pi
 
-        elif self.hole_ori == 'case3':
-            self.xd = np.array([1.05, 0.00, 0.35])
-            Rt = np.array([[0, 0, -1],
-                           [0, 1, 0],
-                           [1, 0, 0]])
-            self.Rd = np.array([[0, 1, 0],
-                                [1, 0, 0],
-                                [0, 0, -1]])
+                # print(self.hole_angle)
+                self.xd = self.center_p + self.r * np.array([0, np.sin(self.hole_angle), -np.cos(self.hole_angle)])
+                Rt = self.rotmat_x(self.hole_angle)
+
+            else:
+                self.hole_angle_random = False
+                self.hole_angle = hole_angle
+                self.xd = self.center_p + self.r * np.array([0, np.sin(self.hole_angle), -np.cos(self.hole_angle)])
+                Rt = self.rotmat_x(self.hole_angle)
+
+            self.Rd = Rt @ self.Rd
+            self.file_name = "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
+
+        else:      
+            self.xd, Rt, self.file_name = get_cases(self.hole_ori)
             self.Rd = Rt @ self.Rd
 
         self.show_viewer = show_viewer
         self.load_xml()
+        if self.hole_ori == 'arbitrary_x':
+            self.set_hole_pose(self.xd, Rt)
+
         self.obs_type = obs_type
 
         self.robot_state = RobotState(self.sim, "end_effector", self.robot_name)
@@ -128,27 +137,10 @@ class RobotEnvBenchmark(Env):
     def load_xml(self):
         dir = "/home/joohwan/deeprl/research/GIC_Learning_public/"
         if self.robot_name == 'ur5e':
-            if self.hole_ori == 'default':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e.xml"
-            elif self.hole_ori == 'case1':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e_case1.xml"
-            elif self.hole_ori == 'case2':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e_case2.xml"
-            elif self.hole_ori == 'case3':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e_case3.xml"
+            raise NotImplementedError
 
         elif self.robot_name == 'fanuc':
-            if self.hole_ori == 'default':
-                if self.testing:
-                    model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
-                else:
-                    model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
-            elif self.hole_ori == 'case1':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc_case1.xml"
-            elif self.hole_ori == 'case2':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc_case2.xml"
-            elif self.hole_ori == 'case3':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc_case3.xml"
+            model_path = dir + self.file_name
 
         elif self.robot_name == 'panda':
             raise NotImplementedError
@@ -169,6 +161,14 @@ class RobotEnvBenchmark(Env):
         self.prev_x = np.zeros((3,))
         self.stuck_count = 0
         self.done_count = 0
+
+        if self.hole_ori == 'aribtrary_x' and self.hole_angle_random:
+            self.hole_angle = (np.random.rand(1) - 0.5) * np.pi
+            self.xd = self.center_p + self.r * np.array([0, np.sin(self.hole_angle), -np.cos(self.hole_angle)])
+            Rt = self.rotmat_x(self.hole_angle)
+
+            self.set_hole_pose(self.xd, Rt)
+
 
         xd_ori = self.xd
         Rd_ori = self.Rd
@@ -264,6 +264,9 @@ class RobotEnvBenchmark(Env):
             elif self.hole_ori == 'case3':
                 q0_ = np.array([0., 0.4, 0.2, 0., 0.4, 0.])
 
+            else:
+                q0_ = np.array([0.0, 0.4, 0.0, 0.0, -np.pi/2 + 0.4, 0.0]) 
+
             while True:
                 bias = np.array([-0.5, -0.5, -0.5, -0.5, -0.5, -0.5])
                 scale = np.array([0.6, 0.8, 0.8, 0.8, 1, 1])
@@ -322,6 +325,15 @@ class RobotEnvBenchmark(Env):
 
         print('total_Return:',sum(return_arr))
 
+    def get_eg(self):
+        x, R = self.robot_state.get_pose_mine()
+        ep = R.T @ (x - self.xd).reshape((-1,1))
+        eR = self.vee_map(self.Rd.T @ R - R.T @ self.Rd)
+
+        eg = np.vstack((ep,eR))
+
+        return eg
+
     def get_expert_action(self):
         x,R = self.robot_state.get_pose_mine()
 
@@ -329,7 +341,7 @@ class RobotEnvBenchmark(Env):
         trans = 0.5 * (x - self.xd).T @ (x - self.xd)
         dis = np.sqrt(rot + trans)
 
-        eg = self.get_eX()
+        eg = self.get_eg()
         z_part = abs(eg[2,0])
         trans_part1 = np.sqrt(eg[0:2,:].T @ eg[0:2,:])
 
@@ -354,6 +366,21 @@ class RobotEnvBenchmark(Env):
             action = np.clip(action, -0.99, 0.99)
         
         return action
+    
+    def get_expert_action_modified(self):
+        Kp = self.Kp
+        KR = self.KR
+
+        Kp_upper = np.array([Kp[0,0],Kp[0,1],Kp[0,2],Kp[1,1],Kp[1,2],Kp[2,2]]) 
+        
+        action = np.array([Kp[0,0],Kp[0,1],Kp[0,2],Kp[1,1],Kp[1,2],Kp[2,2], KR[0,0], KR[1,1], KR[2,2]]) 
+
+        # if np.isnan(action).any():
+        #     print('NAN DETECTED!!!')
+        #     print('Kp upper:', Kp_upper, 'action:', action)
+
+        return action
+
 
     def step(self, action):
         self.robot_state.update()
@@ -504,6 +531,9 @@ class RobotEnvBenchmark(Env):
 
     def impedance_control(self, action):
         Je = self.robot_state.get_jacobian_mine() ## self.robot_state.get_jacobian_mine() returns exactly same value
+        # Jb = self.robot_state.get_body_jacobian()
+
+        x, R = self.robot_state.get_pose_mine()
 
         #### For future use
         M,C,G = self.robot_state.get_dynamic_matrices()
@@ -517,8 +547,17 @@ class RobotEnvBenchmark(Env):
 
         Kp,KR = self.convert_gains(action)
 
+        # print(Kp)
+
         Kg = np.block([[Kp, np.zeros((3,3))],[np.zeros((3,3)), KR]])
-        Kd = np.sqrt(Kg) * 8
+
+        # Kg = Je.T @ Kg @ Je
+
+        eig_val, eig_vec = np.linalg.eig(Kg)
+
+        Kd = eig_vec @ np.eye(6) * np.sqrt(eig_val) * 8 @ eig_vec.T
+
+        # print(Kp)
 
         spatial_quat = np.array([0.0, 0.0, 0.0, 1.0])
         Fe = self.robot_state.get_ee_force(spatial_quat)
@@ -534,25 +573,60 @@ class RobotEnvBenchmark(Env):
         return tau_cmd.reshape((-1,))
     
     def convert_gains(self,action):
-        if self.act_type == 'default':
-            axy = action[0:2]
-            az = action[2]
-            ao = action[3:6]
+        if action.shape[0] == 6:
+            if self.act_type == 'default':
+                axy = action[0:2]
+                az = action[2]
+                ao = action[3:6]
 
-        elif self.act_type == 'minimal':
-            axy = np.array([action[0],action[0]])
-            az = action[1]
-            ao = np.array([1.0,1.0,1.0])
+            elif self.act_type == 'minimal':
+                axy = np.array([action[0],action[0]])
+                az = action[1]
+                ao = np.array([1.0,1.0,1.0])
 
-        #update
-        kt_xy = pow(10,1.0*axy + 2.5) # scaling to (1.5, 3.5)
-        kt_z = pow(10,1.5*az + 2.0) # 0.5 to 3.5
-        kt = np.hstack((kt_xy,kt_z))
-        ko = pow(10,0.6*ao + 2.0) #scaling to 1.4, 2.6
+            #update
+            kt_xy = pow(10,1.0*axy + 2.5) # scaling to (1.5, 3.5)
+            kt_z = pow(10,1.5*az + 2.0) # 0.5 to 3.5
+            kt = np.hstack((kt_xy,kt_z))
+            ko = pow(10,0.6*ao + 2.0) #scaling to 1.4, 2.6
 
-        Kp = np.diag(kt); KR = np.diag(ko)
+            Kp = np.diag(kt); KR = np.diag(ko)
+
+            # Kp = self.Rd @ Kp @ self.Rd.T
+
+            self.Kp = Kp
+            self.KR = KR
+
+        elif action.shape[0] == 9:
+            # print(action)
+            action_std = np.array([180.74085851,   0.,           0.,         196.93850129, 258.02454755,
+                                    420.19433596,  23.13223861,  23.10972005,  23.11424111])
+            
+            action_mean = np.array([9.54514681e+02,  0.00000000e+00,  0.00000000e+00,  8.69561477e+02,
+                                    -5.69133521e-01,  3.79495138e+02,  3.47153703e+02,  3.47136878e+02,
+                                    3.47131000e+02])
+            
+            action_max = np.array([1834.70151622,    0.,            0.,         1737.003104,    413.55596621,
+                            2197.41135201,  392.6449354,   392.6449354,   392.6449354 ])
+            
+            act = action * action_max
+            # act = action * action_std + action_mean
+
+            ko = act[6:]
+            kt = act[:6]
+
+            # print(kt)
+
+            KR = np.diag(ko)
+            Kp = np.array([[kt[0],kt[1],kt[2]],
+                           [kt[1],kt[3],kt[4]],
+                           [kt[2],kt[4],kt[5]]])
+    
 
         return Kp, KR
+    
+    def set_hole_pose(self, pos, R):
+        set_body_pose_rotm(self.model, 'hole', pos, R)
     
     def get_custom_obs_data_collection(self):
         x,R = self.robot_state.get_pose_mine()
@@ -573,10 +647,19 @@ class RobotEnvBenchmark(Env):
                           [w[2], 0, -w[0]],
                           [-w[1], w[0], 0]])
         return w_hat
+    
+    def rotmat_x(self, th):
+        R = np.array([[1,0,0],
+                      [0,np.cos(th),-np.sin(th)],
+                      [0,np.sin(th), np.cos(th)]])
+
+        return R
 
 if __name__ == "__main__":
     robot_name = 'fanuc' # Panda currently unavailable - we don't have dynamic model of this right now.
     env_type = 'square_PIH'
     show_viewer = True
-    RE = RobotEnvBenchmark(robot_name, env_type, show_viewer = True, obs_type = 'pos', window_size = 1, hole_ori = 'default', use_ext_force = False, testing = True, act_type = 'minimal', reward_version = 'force_penalty')
+    RE = RobotEnvBenchmark(robot_name, env_type, show_viewer = True, obs_type = 'pos', window_size = 1, hole_ori = 'default',
+                            use_ext_force = False, testing = True, act_type = 'default', reward_version = 'force_penalty',
+                            hole_angle = -np.pi/4)
     RE.test()

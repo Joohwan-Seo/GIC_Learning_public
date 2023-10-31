@@ -37,9 +37,10 @@ class RobotState:
         dt = sim.model.opt.timestep
         # print('dt:', dt)
         fs = 1 / dt
-        cutoff = 50 ## Default value is 50
+        cutoff = 5 ## Default value is 50
         self.fe = np.zeros(6)
         self.lp_filter = ButterLowPass(cutoff, fs, order=5)
+        # self.lp_filter2 = ButterLowPass(cutoff, fs, order=2)
 
         self.load_dll()
 

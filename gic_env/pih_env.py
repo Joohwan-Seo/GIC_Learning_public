@@ -9,25 +9,28 @@ from gym import utils
 
 # import matplotlib.pyplot as plt
 from gic_env.utils.robot_state import RobotState
-from gic_env.utils.mujoco import set_state
+from gic_env.utils.mujoco import set_state, set_body_pose_rotm
 from gic_env.utils.base import Primitive, PrimitiveStatus
+from gic_env.utils.cases_handler import get_cases
 
 
 
 class RobotEnv(Env):
     def __init__(self, robot_name = 'fanuc', env_type = 'square_PIH', max_time = 15, show_viewer = False, 
                  obs_type = 'pos', hole_ori = 'default', testing = False, reward_version = None, window_size = 1, 
-                 use_ext_force = False, act_type = 'default', mixed_obs = False):
+                 use_ext_force = False, act_type = 'default', mixed_obs = False, hole_angle = 0.0, in_dist = True, fix_camera = False):
         
         self.robot_name = robot_name
         self.env_type = env_type
         self.hole_ori = hole_ori
-        self.testing = testing
+        self.testing = testing 
 
         self.reward_version = reward_version
         self.window_size = window_size
         self.use_external_force = use_ext_force
         self.act_type = act_type
+        self.in_dist = in_dist
+        self.fix_camera = fix_camera
 
         if mixed_obs: # To obtain the data for GIC + CEV case
             self.obs_is_Cart = True
@@ -40,50 +43,58 @@ class RobotEnv(Env):
 
         #NOTE(JS) The determinant of the desired rotation matrix should be always 1.
         # (by the definition of the rotational matrix.)
+
+        self.Rd = np.array([[0, 1, 0],
+                            [1, 0, 0],
+                            [0, 0, -1]])
+        
         if self.hole_ori == 'default':
             if self.testing:
                 self.xd = np.array([0.60, 0.012, 0.05])
                 self.Rd = np.array([[0, 1, 0],
                                     [1, 0, 0],
                                     [0, 0, -1]])
+                self.file_name = "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
             else:
                 self.xd = np.array([0.60, 0.012, 0.05])
                 self.Rd = np.array([[0, 1, 0],
                                     [1, 0, 0],
                                     [0, 0, -1]])
-            
-        elif self.hole_ori == 'case1':
-            self.xd = np.array([0.65, 0.1, 0.08])
-            Rt = np.array([[1, 0, 0],
-                           [0, 0.8660, -0.50],
-                           [0,0.50,0.8660]])
-            self.Rd = np.array([[0, 1, 0],
-                                [1, 0, 0],
-                                [0, 0, -1]])
-            self.Rd = Rt @ self.Rd
+                self.file_name = "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
+                
 
-        elif self.hole_ori == 'case2':
-            self.xd = np.array([0.75, 0.00, 0.15])
-            Rt = np.array([[0.8660, 0, -0.5],
-                           [0, 1, 0],
-                           [0.5, 0, 0.8660]])
-            self.Rd = np.array([[0, 1, 0],
-                                [1, 0, 0],
-                                [0, 0, -1]])
-            self.Rd = Rt @ self.Rd
+        elif self.hole_ori == 'arbitrary_x':
 
-        elif self.hole_ori == 'case3':
-            self.xd = np.array([1.05, 0.00, 0.35])
-            Rt = np.array([[0, 0, -1],
-                           [0, 1, 0],
-                           [1, 0, 0]])
-            self.Rd = np.array([[0, 1, 0],
-                                [1, 0, 0],
-                                [0, 0, -1]])
+            self.center_p = np.array([0.65, 0, 0.65])
+            self.r = 0.6
+
+            if hole_angle == 'random':
+                self.hole_angle_random = True
+                self.hole_angle = (np.random.rand() - 0.5) * np.pi
+
+                # print(self.hole_angle)
+                self.xd = self.center_p + self.r * np.array([0, np.sin(self.hole_angle), -np.cos(self.hole_angle)])
+                Rt = self.rotmat_x(self.hole_angle)
+
+            else:
+                self.hole_angle_random = False
+                self.hole_angle = hole_angle
+                self.xd = self.center_p + self.r * np.array([0, np.sin(self.hole_angle), -np.cos(self.hole_angle)])
+                Rt = self.rotmat_x(self.hole_angle)
+
+            self.Rd = Rt @ self.Rd
+            self.file_name = "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
+
+        else:      
+            self.xd, Rt, self.file_name = get_cases(self.hole_ori)
             self.Rd = Rt @ self.Rd
 
         self.show_viewer = show_viewer
         self.load_xml()
+
+        # if self.hole_ori == 'arbitrary_x':
+            # self.set_hole_pose(self.xd, Rt)
+
         self.obs_type = obs_type
 
         self.robot_state = RobotState(self.sim, "end_effector", self.robot_name)
@@ -121,6 +132,9 @@ class RobotEnv(Env):
         if self.window_size is not 1:
             self.obs_memory = [np.zeros(self.num_obs)] * self.window_size
 
+        if self.fix_camera:
+            self.viewer_setup()
+
         self.Fe = np.zeros((6,1))
         self.ECGIC = False
         self.reset()
@@ -128,27 +142,10 @@ class RobotEnv(Env):
     def load_xml(self):
         dir = "/home/joohwan/deeprl/research/GIC_Learning_public/"
         if self.robot_name == 'ur5e':
-            if self.hole_ori == 'default':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e.xml"
-            elif self.hole_ori == 'case1':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e_case1.xml"
-            elif self.hole_ori == 'case2':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e_case2.xml"
-            elif self.hole_ori == 'case3':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_ur5e_case3.xml"
+            raise NotImplementedError
 
         elif self.robot_name == 'fanuc':
-            if self.hole_ori == 'default':
-                if self.testing:
-                    model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
-                else:
-                    model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc.xml"
-            elif self.hole_ori == 'case1':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc_case1.xml"
-            elif self.hole_ori == 'case2':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc_case2.xml"
-            elif self.hole_ori == 'case3':
-                model_path = dir + "gic_env/mujoco_models/pih/square_pih_fanuc_case3.xml"
+            model_path = dir + self.file_name
 
         elif self.robot_name == 'panda':
             raise NotImplementedError
@@ -160,9 +157,7 @@ class RobotEnv(Env):
         else:
             self.viewer = None
 
-    def reset(self):
-
-        self.init_stage = True
+    def reset(self, angle_prefix = None):
         _ = self.initial_sample()
         obs = self._get_obs()
 
@@ -170,6 +165,32 @@ class RobotEnv(Env):
         self.prev_x = np.zeros((3,))
         self.stuck_count = 0
         self.done_count = 0
+
+        if self.hole_ori == 'arbitrary_x':
+            self.Rd = np.array([[0, 1, 0],
+                                [1, 0, 0],
+                                [0, 0, -1]])
+            if self.hole_angle_random:
+                if angle_prefix is None:
+                    if self.in_dist:
+                        self.hole_angle = (np.random.rand() - 0.5) * np.pi
+                    else:
+                        p = np.random.rand()
+                        if p <= 0.5:
+                            self.hole_angle = np.random.rand() * np.pi/4 + np.pi/2 + np.pi/20
+                        else:
+                            self.hole_angle = -np.random.rand() * np.pi/4 - np.pi/2 - np.pi/20
+                elif angle_prefix is not None:
+                    self.hole_angle = angle_prefix
+            else: 
+                pass          
+
+            self.xd = self.center_p + self.r * np.array([0, np.sin(self.hole_angle), -np.cos(self.hole_angle)])
+            Rt = self.rotmat_x(self.hole_angle)
+            self.set_hole_pose(self.xd, Rt)  
+
+            self.Rd = Rt @ self.Rd
+
 
         xd_ori = self.xd
         Rd_ori = self.Rd
@@ -262,6 +283,8 @@ class RobotEnv(Env):
                 q0_ = np.array([0., 0.4, 0.2, 0., -np.pi/2 + 0.4, 0.]) 
             elif self.hole_ori == 'case3':
                 q0_ = np.array([0., 0.4, 0.2, 0., 0.4, 0.]) 
+            else:
+                q0_ = np.array([0.0, 0.4, 0.0, 0.0, -np.pi/2 + 0.4, 0.0]) 
 
             while True:
                 bias = np.array([-0.5, -0.5, -0.5, -0.5, -0.5, -0.5])
@@ -400,6 +423,8 @@ class RobotEnv(Env):
             else:
                 done = False
                 success = False
+
+            # print(dis_trans)
 
         if self.iter == self.max_iter -1:
             done = True
@@ -559,6 +584,9 @@ class RobotEnv(Env):
 
         return Kp, KR
     
+    def set_hole_pose(self, pos, R):
+        set_body_pose_rotm(self.model, 'hole', pos, R)
+    
     def get_custom_obs_data_collection(self):
         x,R = self.robot_state.get_pose_mine()
         eg = self.get_eg()
@@ -578,10 +606,33 @@ class RobotEnv(Env):
                           [w[2], 0, -w[0]],
                           [-w[1], w[0], 0]])
         return w_hat
+    
+    def rotmat_x(self, th):
+        R = np.array([[1,0,0],
+                      [0,np.cos(th),-np.sin(th)],
+                      [0,np.sin(th), np.cos(th)]])
+
+        return R
+    
+    def viewer_setup(self):
+        assert self.viewer is not None
+        self.viewer.cam.type = mujoco_py.generated.const.CAMERA_FREE
+        # self.viewer.cam.fixedcamid = 0
+        self.viewer.cam.trackbodyid = 1
+        self.viewer.cam.distance = self.model.stat.extent * 0.7
+        self.viewer.cam.lookat[0] = 0.65
+        self.viewer.cam.lookat[1] = 0
+        self.viewer.cam.lookat[2] = 0.5
+        self.viewer.cam.elevation = 0
+        self.viewer.cam.azimuth = 180
 
 if __name__ == "__main__":
     robot_name = 'fanuc' # UR5e and Fanuc will only work
     env_type = 'square_PIH'
     show_viewer = True
-    RE = RobotEnv(robot_name, env_type, show_viewer = True, obs_type = 'pos', window_size = 1, hole_ori = 'default', use_ext_force = False, testing = True, act_type = 'minimal', reward_version = 'force_penalty')
+    angle = -30
+    angle_rad = angle / 180 * np.pi
+    RE = RobotEnv(robot_name, env_type, show_viewer = True, obs_type = 'pos', window_size = 1, hole_ori = 'arbitrary_x', 
+                  use_ext_force = False, testing = True, act_type = 'minimal', reward_version = 'force_penalty',
+                  hole_angle = angle_rad, fix_camera = False)
     RE.test()
