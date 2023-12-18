@@ -4,3 +4,6 @@
 *.pyo
 *.pyc
 *.cpython-36.pyc
+/gic_env/class_pih_env.py
+/gic_env/class_pih_env_benchmark.py
+/scripts/class_run_policy_robot_BC_cost.py

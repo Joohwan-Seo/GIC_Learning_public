@@ -617,14 +617,47 @@ class RobotEnv(Env):
     def viewer_setup(self):
         assert self.viewer is not None
         self.viewer.cam.type = mujoco_py.generated.const.CAMERA_FREE
-        # self.viewer.cam.fixedcamid = 0
         self.viewer.cam.trackbodyid = 1
-        self.viewer.cam.distance = self.model.stat.extent * 0.7
-        self.viewer.cam.lookat[0] = 0.65
-        self.viewer.cam.lookat[1] = 0
-        self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.elevation = 0
-        self.viewer.cam.azimuth = 180
+        if self.hole_ori == 'default':            
+            self.viewer.cam.distance = self.model.stat.extent * 0.4
+            self.viewer.cam.lookat[0] = 0.65
+            self.viewer.cam.lookat[1] = 0
+            self.viewer.cam.lookat[2] = 0.2
+            self.viewer.cam.elevation = -30
+            self.viewer.cam.azimuth = 90
+
+        elif self.hole_ori == 'case1':
+            self.viewer.cam.distance = self.model.stat.extent * 0.4
+            self.viewer.cam.lookat[0] = 0.65
+            self.viewer.cam.lookat[1] = 0
+            self.viewer.cam.lookat[2] = 0.2
+            self.viewer.cam.elevation = -30
+            self.viewer.cam.azimuth = 180
+
+        elif self.hole_ori == 'case2':
+            self.viewer.cam.distance = self.model.stat.extent * 0.4
+            self.viewer.cam.lookat[0] = 0.65
+            self.viewer.cam.lookat[1] = 0
+            self.viewer.cam.lookat[2] = 0.2
+            self.viewer.cam.elevation = -30
+            self.viewer.cam.azimuth = 90
+
+        elif self.hole_ori == 'case3':
+            self.viewer.cam.distance = self.model.stat.extent * 0.4
+            self.viewer.cam.lookat[0] = 0.65
+            self.viewer.cam.lookat[1] = 0
+            self.viewer.cam.lookat[2] = 0.3
+            self.viewer.cam.elevation = -10
+            self.viewer.cam.azimuth = 90
+
+        else:
+            self.viewer.cam.trackbodyid = 1
+            self.viewer.cam.distance = self.model.stat.extent * 0.7
+            self.viewer.cam.lookat[0] = 0.65
+            self.viewer.cam.lookat[1] = 0
+            self.viewer.cam.lookat[2] = 0.5
+            self.viewer.cam.elevation = 0
+            self.viewer.cam.azimuth = 180
 
 if __name__ == "__main__":
     robot_name = 'fanuc' # UR5e and Fanuc will only work

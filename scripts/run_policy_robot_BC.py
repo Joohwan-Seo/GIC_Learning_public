@@ -25,8 +25,8 @@ def test_policy(args):
     policy.load_state_dict(policy_weights)
     policy.float()
 
-    cases = ['default','case1','case2','case3']
-    # cases = ['case3']
+    # cases = ['default','case1','case2','case3']
+    cases = ['case3']
 
     num_testing = args.num_testing
 
@@ -150,7 +150,7 @@ def test_policy_aug(args):
             policy.cuda()
             cuda0 = torch.device('cuda:0')
         for i in range(num_testing):
-            obs = env.reset(angle_prefix = angle)
+            obs = env.reset(angle_prefix = angle/180 * np.pi)
 
             for i in range(args.H):
                 obs_tensor = torch.from_numpy(obs)
@@ -284,7 +284,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--rand_test', type=bool, default = False)
     parser.add_argument('--fix_seed', type=bool, default = False)
-    parser.add_argument('--fix_camera', type = bool, default = False)
+    parser.add_argument('--fix_camera', type = bool, default = True)
     args = parser.parse_args()
 
     args.benchmark = True if args.benchmark == 'True' else False

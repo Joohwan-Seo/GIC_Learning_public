@@ -1,0 +1,63 @@
+<mujoco>
+
+  <include file="scene.xml"/>
+  <compiler angle="radian" coordinate="local" eulerseq="ZYX"/>
+  <size njmax="5000" nconmax="250"/>
+
+  <!-- set to default values at the moment -->
+  <default class="contact">
+    <default class="hole">
+      <geom type="box" mass="0.0099" size="0.02500 0.00047 0.03000"/>
+    </default>
+
+    <default class="peg">
+      <!-- size = (radius, half-heihgt) -->
+      <geom type="box" mass="0.5" size="0.0095 0.0095 0.022" euler="0 0 0"
+                priority="1" condim="6" friction="0.8 0.05 0.001"
+                solimp="0.9 0.95 0.001 0.5 2" solref="0.02 1"/>
+    </default>
+  </default>
+  <default>
+    <geom friction="0.8 0.8 0.8" conaffinity="1" condim="1" contype="1" margin="0.0005"/>
+  </default>
+
+  <include file="../fanuc_sim/assets.xml"/>
+  <compiler meshdir=""/>
+
+  <worldbody>
+      <include file="chain_peg_fanuc.xml"/>
+  </worldbody>
+
+  <include file='../fanuc_sim/force_actuator.xml'/>
+
+
+  <!-- default class to adjust the paramters of peg -->
+  <worldbody>
+    <!-- <body>
+      <geom name="test" type="box" pos="0.3 0 0.06" size = "0.05 0.05 0.005" />
+    </body> -->
+    <body name="hole" pos="0.65 -0.2 0.2" quat="0.866025 -0.50 0 0">
+      <geom name="holebase" type="box" mass="0.1" pos="0 0 0.01" size="0.4 0.4 0.01"/> 
+      <!-- <geom name="hole1" type="box" mass="0.1" pos="0.055 -0.045 0.03" size="0.045 0.055 0.01"/>
+      <geom name="hole2" type="box" mass="0.1" pos="-0.055 0.045 0.03" size="0.045 0.055 0.01"/>
+      <geom name="hole3" type="box" mass="0.1" pos="0.045 0.055 0.03" size="0.055 0.045 0.01"/>
+      <geom name="hole4" type="box" mass="0.1" pos="-0.045 -0.055 0.03" size="0.055 0.045 0.01"/> -->
+      <!-- <geom name="hole1" type="box" mass="0.1" pos="0.205 -0.195 0.03" size="0.195 0.205 0.01"/>
+      <geom name="hole2" type="box" mass="0.1" pos="-0.205 0.195 0.03" size="0.195 0.205 0.01"/>
+      <geom name="hole3" type="box" mass="0.1" pos="0.195 0.205 0.03" size="0.205 0.195 0.01"/>
+      <geom name="hole4" type="box" mass="0.1" pos="-0.195 -0.205 0.03" size="0.205 0.195 0.01"/> -->
+      <geom name="hole1" type="box" mass="0.1" pos="0.205003 -0.194997 0.03" size="0.194997 0.205003 0.01"/>
+      <geom name="hole2" type="box" mass="0.1" pos="-0.205003 0.194997 0.03" size="0.194997 0.205003 0.01"/>
+      <geom name="hole3" type="box" mass="0.1" pos="0.194997 0.205003 0.03" size="0.205003 0.194997 0.01"/>
+      <geom name="hole4" type="box" mass="0.1" pos="-0.194997 -0.205003 0.03" size="0.205003 0.194997 0.01"/>
+    </body>
+  </worldbody>
+
+  <sensor>
+    <force name="force_ee" site="end_effector"/>
+    <torque name="torque_ee" site="end_effector"/>
+  </sensor>
+
+
+
+</mujoco>

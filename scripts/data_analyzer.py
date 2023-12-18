@@ -112,7 +112,38 @@ if __name__ == "__main__":
 
     log_GIC_final = 'data/Fanuc_success/final_GIC_minimal_separated_pos_3x128_reward2/'
     log_CIC_final = 'data/Fanuc_success/final_CIC_minimal_separated_pos_3x128_reward2/'
-    
-    main(log_GIC_final + 'progress.csv', window)
 
-    main_multi(log_GIC_final + 'progress.csv', log_CIC_final + 'progress.csv', window)
+
+    log_GIC_TCIC = 'data/Fanuc-TCIC-Geometric-6-action/Fanuc_TCIC_Geometric_6_action_2023_11_08_10_33_19_0000--s-0/'
+    log_GIC_TCIC2 = 'data/Fanuc-TCIC-Geometric-6-action-fullObs/Fanuc_TCIC_Geometric_6_action_fullObs_2023_11_09_13_20_32_0000--s-0/' #477 works pretty well -- working version
+    log_GIC_TCIC2_reward2 = 'data/Fanuc-TCIC-Geometric-6-action-fullObs-reward2/Fanuc_TCIC_Geometric_6_action_fullObs_reward2_2023_11_20_14_26_56_0000--s-0/'
+    log_GIC_TCIC2_longer = 'data/Fanuc-TCIC-Geometric-6-action-fullObs/Fanuc_TCIC_Geometric_6_action_fullObs_2023_11_20_21_43_15_0000--s-0/' #687 seems good
+
+    log_GIC_TCIC_no_FC = 'data/Fanuc-TCIC-Geometric-6-action-fullObs-wo-FP/Fanuc_TCIC_Geometric_6_action_fullObs_wo_FP_2023_11_27_14_19_20_0000--s-0/'
+    log_GIC_TCIC_no_FC2 = 'data/Fanuc-TCIC-Geometric-6-action-fullObs-wo-FP/Fanuc_TCIC_Geometric_6_action_fullObs_wo_FP_2023_11_27_16_30_58_0000--s-0/' #380 seems good
+
+    log_GIC_TCIC_redo = 'data/Fanuc-TCIC-Geometric-6-action-fullObs-redo/Fanuc_TCIC_Geometric_6_action_fullObs_redo_2023_11_28_14_56_37_0000--s-0/' # This works I Guess itr 337
+    log_GIC_TCIC_reward2_5 = 'data/Fanuc-TCIC-Geometric-6-action-fullObs-redo/Fanuc_TCIC_Geometric_6_action_fullObs_redo_2023_11_28_17_22_19_0000--s-0/' #430
+    
+    log_CIC_TCIC = 'data/Fanuc-TCIC-Cartesian-6-action-fullObs/Fanuc_TCIC_Cartesian_6_action_fullObs_2023_11_09_23_10_16_0000--s-0/' #450 seems good
+
+    log_CIC_TCIC_redo = 'data/Fanuc-TCIC-Cartesian-6-action-fullObs-redo/Fanuc_TCIC_Cartesian_6_action_fullObs_redo_2023_11_30_13_30_41_0000--s-0/'
+
+
+    log_CIC_TCIC_posvel = 'data/Fanuc-TCIC-Cartesian-6-action-posvel/Fanuc_TCIC_Cartesian_6_action_posvel_2023_12_12_13_01_15_0000--s-0/' #225
+
+    ## Believable results
+    log_GIC_TCIC2 = 'data/Fanuc-TCIC-Geometric-6-action-fullObs/Fanuc_TCIC_Geometric_6_action_fullObs_2023_11_09_13_20_32_0000--s-0/' #477 works pretty well -- working version
+    log_GIC_TCIC_redo = 'data/Fanuc-TCIC-Geometric-6-action-fullObs-redo/Fanuc_TCIC_Geometric_6_action_fullObs_redo_2023_11_28_14_56_37_0000--s-0/' # This works I Guess itr 337
+    log_GIC_TCIC_reward2_5 = 'data/Fanuc-TCIC-Geometric-6-action-fullObs-redo/Fanuc_TCIC_Geometric_6_action_fullObs_redo_2023_11_28_17_22_19_0000--s-0/' #430
+
+
+    log_GIC_TCIC_posvel = 'data/Fanuc-TCIC-geometric-6-action-posvel/Fanuc_TCIC_geometric_6_action_posvel_2023_12_11_20_23_26_0000--s-0/'
+    log_CIC_TCIC_posvel = 'data/Fanuc-TCIC-Cartesian-6-action-posvel/Fanuc_TCIC_Cartesian_6_action_posvel_2023_12_12_13_01_15_0000--s-0/' #225
+
+
+
+    ##
+    main(log_CIC_TCIC_posvel + 'progress.csv', window)
+
+    # main_multi(log_GIC_final + 'progress.csv', log_CIC_final + 'progress.csv', window)

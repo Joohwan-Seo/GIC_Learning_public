@@ -1,5 +1,5 @@
-from gic_env.pih_env import RobotEnv
-from gic_env.pih_env_benchmark import RobotEnvBenchmark
+from gic_env.pih_env_TCIC import RobotEnv
+from gic_env.pih_env_benchmark_TCIC import RobotEnvBenchmark
 
 import torch
 
@@ -122,31 +122,31 @@ if __name__ == "__main__":
         version="normal",
         layer_size=128,
         replay_buffer_size=int(1E6),
-        obs_type = "pos",
+        obs_type = "pos_vel",
         algorithm_kwargs=dict(
-            num_epochs = 2000,
+            num_epochs = 500,
             num_eval_steps_per_epoch=4000,
-            num_trains_per_train_loop= 500,
+            num_trains_per_train_loop= 300,
             num_expl_steps_per_train_loop=4000,
             min_num_steps_before_training=200000,
             max_path_length=4000,
-            batch_size = 1024,
-            use_expert_policy=True
+            batch_size = 4096,
+            use_expert_policy= True
         ),
         trainer_kwargs=dict(
             discount=0.99,
             soft_target_tau=5e-3,
             target_update_period=10,
-            policy_lr=3e-4, 
-            qf_lr=3e-4,
+            policy_lr=1e-3, 
+            qf_lr=1e-4,
             reward_scale=1,
             use_automatic_entropy_tuning=True,
         ),
-        benchmark = False,
-        seed = int(2),
+        benchmark = True,
+        seed = int(5),
         window_size = int(1),
         use_ext_force = False,
-        action_type = 'minimal',
+        action_type = 'default',
         env_type = 'benchmark', # 'default' or 'benchmark' default is Geometric approach, benchmark is Cartesian approach
         reward_version = 'force_penalty' # None or 'force_penalty' None is without force penalty, force_penalty version is the version in the paper.
     )
@@ -159,6 +159,6 @@ if __name__ == "__main__":
 
 
     set_seed(variant['seed'])
-    setup_logger('Fanuc_Separated_CIC_ws_1_3x128_pos_no_force_force_penalty_minimal_2', variant=variant, snapshot_mode = "gap", snapshot_gap = 5)
+    setup_logger('Fanuc_TCIC_Cartesian_6_action_posvel', variant=variant, snapshot_mode = "gap", snapshot_gap = 5)
     ptu.set_gpu_mode(True)  # optionally set the GPU (default=False)
     experiment(variant)
